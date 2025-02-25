@@ -1,9 +1,106 @@
 body {
-    background: rgb(248, 249, 255);
+    margin: 0;
+    padding: 0;
+    background-color: #FAFBFF;
 }
 
-h1 {
+header {
+    text-align: center;
+    padding: 20px;
+    font-size: 30px;
+    font-weight: bold;
     color: #0018a4;
-    font-size: 65px;
-    margin-top: 50px;
 }
+
+h2 {
+    font-size: 25px;
+}
+
+.filters {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px;
+}
+
+.filter-group,
+.sort-group {
+    text-align: center;
+}
+
+/* BUTTON STYLING */
+.filter-btn,
+.sort-btn {
+    font-family: 'Times New Roman', Times, serif;
+    border: none;
+    padding: 10px 20px;
+    margin: 5px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 18px;
+} 
+
+.filter-btn {
+    background-color: #ccffe2;
+    color:#0018a4;
+}
+
+.sort-btn {
+    background-color: #ffecea;
+    color:#0018a4;
+}
+
+.filter-btn:hover {
+    border: 2px solid #0018a4; /* Lägga till bakgrundsfärg i javascript när knapp är tryckt */    
+}
+
+.sort-btn:hover  {
+    border: 2px solid #0018a4; /* Lägga till bakgrundsfärg i javascript när knapp är tryckt */
+}
+
+/* PLACEHOLDER, RECIPE-CARDS */
+
+.placeholder {
+    display: flex;
+    font-weight: bold;
+    color: #333;
+    height: auto;
+    background-color: #ffffff;
+    border-radius: 10px;
+}
+
+.recipe-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 5px;
+}
+
+.recipe-card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    width: 300px;
+    text-align: left;
+}
+
+.recipe-card img {
+    width: 100%;
+    border-radius: 10px;
+}
+.recipe-card ul {
+    list-style: none;
+    text-align: left;
+    margin: 0;
+    padding: 0;
+}
+
+hr {
+    border: none;
+    height: 2px;
+    background-color: #cccccc50;
+    width: 100%;
+}
+    
