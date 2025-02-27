@@ -16,6 +16,13 @@ h2 {
     font-size: 25px;
 }
 
+
+h4 {
+    margin: 0;
+    padding-top: 5px;
+    padding-bottom: 10px;
+}
+
 .filters {
     display: flex;
     justify-content: center;
@@ -31,60 +38,77 @@ h2 {
 /* BUTTON STYLING */
 .filter-btn,
 .sort-btn {
-    font-family: 'Times New Roman', Times, serif;
-    border: none;
-    padding: 10px 20px;
+    border: 2px solid #fafbff00;
+    padding: 8px 17px;
     margin: 5px;
     border-radius: 20px;
     cursor: pointer;
     font-size: 18px;
+    color: #0018a4;
+    font-family: 'futura';
 } 
 
 .filter-btn {
     background-color: #ccffe2;
-    color:#0018a4;
 }
 
 .sort-btn {
     background-color: #ffecea;
-    color:#0018a4;
 }
 
-.filter-btn:hover {
-    border: 2px solid #0018a4; /* Lägga till bakgrundsfärg i javascript när knapp är tryckt */    
+.filter-btn:hover, 
+.sort-btn:hover {
+    border: 2px solid #0018a4;
 }
 
-.sort-btn:hover  {
-    border: 2px solid #0018a4; /* Lägga till bakgrundsfärg i javascript när knapp är tryckt */
+.filter-btn.active {
+    background-color:#0018a4;
+    color: white;
 }
+ .sort-btn.active {
+    background-color: #FF6589;
+    color: white;
+    border: 2px solid #FF6589;
+ }
 
 /* PLACEHOLDER, RECIPE-CARDS */
-
-.placeholder {
-    display: flex;
-    font-weight: bold;
-    color: #333;
-    height: auto;
-    background-color: #ffffff;
-    border-radius: 10px;
-}
 
 .recipe-container {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    align-items: stretch;
     gap: 20px;
     padding: 5px;
+    margin: 20px;
 }
 
-.recipe-card {
+.recipe-card, 
+.placeholder {
     background-color: white;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     padding: 15px;
-    width: 300px;
+    max-width: 300px;
     text-align: left;
+    flex: 1;
 }
+
+.placeholder p {
+    opacity: 0;
+    animation: fadeIn 0.3s ease-in forwards;
+}
+
+@keyframes fadeIn {
+from {opacity: 0;}
+to {opacity: 1;}
+}
+
+.recipe-card p {
+    margin: 0;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    }    
 
 .recipe-card img {
     width: 100%;
@@ -101,6 +125,5 @@ hr {
     border: none;
     height: 2px;
     background-color: #cccccc50;
-    width: 100%;
 }
     

@@ -10,29 +10,29 @@
     <header>
         <h1>Recipe Library</h1>
     </header>
-    
+    <main>
     <section class="filters">
-        <div class="filter-group">
-            <h2>Filter on kitchen</h2>
-            <button class="filter-btn">All</button>
-            <button class="filter-btn">Italy</button>
-            <button class="filter-btn">USA</button>
-            <button class="filter-btn">China</button>
+        <div id="filter-group" class="filter-group">
+            <h2>Filter on Cuisine</h2>
+            <button class="filter-btn" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="italy">Italy</button>
+            <button class="filter-btn" data-filter="usa">USA</button>
+            <button class="filter-btn" data-filter="china">China</button>
         </div>
-        <div class="sort-group">
+        <div id="sort-group" class="sort-group">
             <h2>Sort on time</h2>
-            <button class="sort-btn">Descending</button>
-            <button class="sort-btn">Ascending</button>
+            <button class="sort-btn" data-sort="desc">Descending</button>
+            <button class="sort-btn" data-sort="asc">Ascending</button>
         </div>
     </section>
     
-    <main class="recipe-container">
-        <div class="recipe-card placeholder">
+    <section class="recipe-container">
+        <div id="placeholder-box" class="placeholder">
             <h3>Temporary placeholder for filters/sorting options</h3>
         </div>
         
-        <div class="recipe-card">
-            <img src="assets/images/chicken.png" alt="Recipe Image">
+        <div class="recipe-card" data-cuisine="american">
+            <img src="assets/images/chicken.png" alt="A plate of seasoned roasted chicken">
             <h3>Temporary placeholder recipe</h3>
             <hr>
             <p><strong>Cuisine:</strong> American</p>
@@ -47,5 +47,6 @@
             </ul>
         </div>
     </main>
+    <script src="script.js"></script>
 </body>
 </html>
