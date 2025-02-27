@@ -16,6 +16,9 @@ h2 {
     font-size: 25px;
 }
 
+.placeholder h3 {
+    text-align: center;
+}
 
 h4 {
     margin: 0;
@@ -76,11 +79,15 @@ h4 {
 .recipe-container {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
-    align-items: stretch;
+    flex-direction: column;
+    align-items: center;
     gap: 20px;
     padding: 5px;
     margin: 20px;
+}
+
+.recipe-content {
+    display: none; /* Only showing the placeholderimg until filterbutton clicked*/
 }
 
 .recipe-card, 
@@ -89,9 +96,13 @@ h4 {
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     padding: 15px;
+    width: 90%; 
     max-width: 300px;
-    text-align: left;
-    flex: 1;
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .placeholder p {
@@ -126,4 +137,17 @@ hr {
     height: 2px;
     background-color: #cccccc50;
 }
-    
+
+@media (min-width: 768px) { 
+    .recipe-container {
+        flex-direction: row;
+        justify-content: center;
+        align-items: stretch;
+    }
+
+    .recipe-card, 
+    .placeholder {
+        flex: 1;
+        width: auto;
+    }
+}

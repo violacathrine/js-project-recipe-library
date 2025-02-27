@@ -28,23 +28,25 @@
     
     <section class="recipe-container">
         <div id="placeholder-box" class="placeholder">
-            <h3>Temporary placeholder for filters/sorting options</h3>
+            <h3>What are you up for today?</h3>
         </div>
         
-        <div class="recipe-card" data-cuisine="american">
-            <img src="assets/images/chicken.png" alt="A plate of seasoned roasted chicken">
-            <h3>Temporary placeholder recipe</h3>
+        <div id="recipe-card" class="recipe-card">
+            <img id="recipe-image" src="assets/images/deliciousfood.png" alt="Delicious food">
+            <div id="recipe-content" class="recipe-content">
+            <h3 id="recipe-title">Temporary placeholder recipe</h3>
             <hr>
-            <p><strong>Cuisine:</strong> American</p>
-            <p><strong>Time:</strong> 1h 30min</p>
+            <p><strong>Cuisine:</strong> <span id="recipe-cuisine">American</span></p>
+            <p><strong>Time:</strong> <span id="recipe-time">1h 30min</span></p>
             <hr>
             <h4>Ingredients</h4>
-            <ul>
+            <ul id="recipe-ingredients">
                 <li>6 bone-in chicken breast halves, or 6 chicken thighs and wings, skin-on</li>
                 <li>1/2 teaspoon coarse salt</li>
                 <li>1/2 teaspoon Mrs. Dash seasoning</li>
                 <li>1/4 teaspoon freshly ground black pepper</li>
             </ul>
+            </div>
         </div>
     </main>
     <script src="script.js"></script>
