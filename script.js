@@ -1,10 +1,11 @@
 //DOM SELECTORS
-
 const filterGroup = document.getElementById("filter-group")
 const filterButtons = filterGroup.querySelectorAll(".filter-btn")
 const sortGroup = document.getElementById("sort-group")
 const sortButtons = sortGroup.querySelectorAll(".sort-btn")
 const placeholderBox = document.getElementById("placeholder-box")
+const recipeImage = document.getElementById("recipe-image")
+const recipeContent = document.getElementById("recipe-content")
 
 // Different messages when specific button is clicked
 const messages = {
@@ -45,5 +46,20 @@ const paragraph = document.createElement("p")
 paragraph.innerText = newMessage
 
 placeholderBox.appendChild(paragraph)
+    })
+)
+
+// CHANGE PICTURE WITH FADE EFFECT + SHOW RECIPE CONTENT
+document.querySelectorAll(".filter-btn, .sort-btn").forEach(button =>
+    button.addEventListener("click", () => {
+        recipeImage.style.opacity = "0"
+        recipeContent.style.opacity = "0"
+
+        setTimeout(() => {
+            recipeImage.src = "assets/images/chicken.png" //
+            recipeImage.style.opacity = "1" // 
+            recipeContent.style.opacity = "1" // 
+            recipeContent.style.display = "block" //
+        }, 300)
     })
 )

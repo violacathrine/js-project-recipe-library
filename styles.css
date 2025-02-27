@@ -87,7 +87,11 @@ h4 {
 }
 
 .recipe-content {
-    display: none; /* Only showing the placeholderimg until filterbutton clicked*/
+    display: none; /* Only showing the placeholder imgage until filterbutton clicked*/
+}
+
+.recipe-card {
+    align-self: flex-start;
 }
 
 .recipe-card, 
@@ -119,11 +123,13 @@ to {opacity: 1;}
     margin: 0;
     padding-top: 5px;
     padding-bottom: 5px;
-    }    
+}    
 
 .recipe-card img {
     width: 100%;
     border-radius: 10px;
+    transition: opacity 0.5s ease-in-out;
+
 }
 .recipe-card ul {
     list-style: none;
