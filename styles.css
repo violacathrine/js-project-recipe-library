@@ -87,11 +87,7 @@ h4 {
 }
 
 .recipe-content {
-    display: none; /* Only showing the placeholder imgage until filterbutton clicked*/
-}
-
-.recipe-card {
-    align-self: flex-start;
+    display: none; /* Only showing the placeholder image until filterbutton clicked*/
 }
 
 .recipe-card, 
