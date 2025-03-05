@@ -27,10 +27,35 @@ header {
     padding: 10px;
     font-size: 14px;
     border-radius: 10px;
-    border: 2px solid #0018a4;
     background-color: #ccffe2;
     color: #0018a4;
     cursor: pointer;
+    border: none;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.filters select:hover {
+    border: 2px solid #0018a4;
+}
+
+#sort-filter {
+    background-color: #ffecea;
+}
+
+.filters select:focus,
+.filters select:active {
+    background-color: #0018a4;
+    border-color: #0018a4;
+    color: white;
+    outline: none;
+}
+
+#sort-filter:focus,
+#sort-filter:active {
+    background-color: #ff6589;
+    border-color: #0018a4;
+    color: white;
+    outline: none;
 }
 
 /* RECIPE CARD */
@@ -53,6 +78,7 @@ header {
     text-align: left;
     border: 2px solid #0018a4;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
 }
 
 .recipe-card:hover {
