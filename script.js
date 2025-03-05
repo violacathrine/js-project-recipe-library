@@ -1,72 +1,159 @@
-//DOM SELECTORS
-const filterGroup = document.getElementById("filter-group")
-const filterButtons = filterGroup.querySelectorAll(".filter-btn")
-const sortGroup = document.getElementById("sort-group")
-const sortButtons = sortGroup.querySelectorAll(".sort-btn") 
-const placeholderBox = document.getElementById("placeholder-box")
-const messageList = document.getElementById("messageList")
-const recipeImage = document.getElementById("recipe-image")
-const recipeContent = document.getElementById("recipe-content")
+// Receptarray
+const recipes = [
+  {
+    id: 1,
+    title: "Vegan Lentil Soup",
+    image: "/assets/images/placeholder.png",
+    readyInMinutes: 30,
+    servings: 4,
+    diets: ["vegan"],
+    cuisine: "Mediterranean",
+    ingredients: [
+      "red lentils",
+      "carrots",
+      "onion",
+      "garlic",
+      "tomato paste",
+      "cumin",
+      "paprika",
+      "vegetable broth",
+      "olive oil",
+      "salt"
+    ],
+    popularity: 85
+  },
+  {
+    id: 2,
+    title: "Vegetarian Pesto Pasta",
+    image: "/assets/images/placeholder.png",
+    readyInMinutes: 25,
+    servings: 2,
+    diets: ["vegetarian"],
+    cuisine: "Italian",
+    ingredients: [
+      "pasta",
+      "basil",
+      "parmesan cheese",
+      "garlic",
+      "pine nuts",
+      "olive oil",
+      "salt",
+      "black pepper"
+    ],
+    popularity: 92
+  },
+  {
+    id: 3,
+    title: "Gluten-Free Chicken Stir-Fry",
+    image: "/assets/images/placeholder.png",
+    readyInMinutes: 20,
+    servings: 3,
+    diets: ["gluten-free"],
+    cuisine: "Asian",
+    ingredients: [
+      "chicken breast",
+      "broccoli",
+      "bell pepper",
+      "carrot",
+      "soy sauce (gluten-free)",
+      "ginger",
+      "garlic",
+      "sesame oil",
+      "cornstarch",
+      "green onion",
+      "sesame seeds",
+      "rice"
+    ],
+    popularity: 78
+  },
+  {
+    id: 4,
+    title: "Vegetarian Pesto Pasta",
+    image: "/assets/images/placeholder.png",
+    readyInMinutes: 25,
+    servings: 2,
+    diets: ["vegetarian"],
+    cuisine: "Italian",
+    ingredients: [
+      "pasta",
+      "basil",
+      "parmesan cheese",
+      "garlic",
+      "pine nuts",
+      "olive oil",
+      "salt",
+      "black pepper"
+    ],
+    popularity: 92
+  },
+  {
+    id: 5,
+    title: "Vegan Lentil Soup",
+    image: "/assets/images/placeholder.png",
+    readyInMinutes: 30,
+    servings: 4,
+    diets: ["vegan"],
+    cuisine: "Mediterranean",
+    ingredients: [
+      "red lentils",
+      "carrots",
+      "onion",
+      "garlic",
+      "tomato paste",
+      "cumin",
+      "paprika",
+      "vegetable broth",
+      "olive oil",
+      "salt"
+    ],
+    popularity: 85
+  },
+  {
+    id: 6,
+    title: "Vegan Lentil Soup",
+    image: "/assets/images/placeholder.png",
+    readyInMinutes: 30,
+    servings: 4,
+    diets: ["vegan"],
+    cuisine: "Mediterranean",
+    ingredients: [
+      "red lentils",
+      "carrots",
+      "onion",
+      "garlic",
+      "tomato paste",
+      "cumin",
+      "paprika",
+      "vegetable broth",
+      "olive oil",
+      "salt"
+    ],
+    popularity: 85
+  },
+];
 
-// Different messages when specific button is clicked
-const maxMessages = 8
-const messages = {
-    all: "You are very hungry huh?",
-    italy: "Want to make a pizza maybe?",
-    usa: "Or are you in the mood for burgers?",
-    china: "Springolls? Okay!",
-    desc: "Sorting by descending time.",
-    asc: "Sorting by ascending time."
-}
+// Funktion för att visa recepten
+const displayRecipes = (recipeList) => {
+  const container = document.getElementById("recipe-container");
+  container.innerHTML = ""; // Rensa befintligt innehåll
 
-// Function for when click button, change color
+  recipeList.forEach(recipe => {
+    const recipeCard = document.createElement("div");
+    recipeCard.classList.add("recipe-card");
 
-filterButtons.forEach(button => {
-    button.addEventListener("click", (event) => {
-        filterButtons.forEach(btn => btn.classList.remove("active"))
-        event.target.classList.add("active")
-    })
-})
+    recipeCard.innerHTML = `
+      <img src="${recipe.image}" alt="${recipe.title}">
+      <h3>${recipe.title}</h3>
+      <p><strong>Cuisine:</strong> ${recipe.cuisine}</p>
+      <p><strong>Time:</strong> ${recipe.readyInMinutes} min</p>
+      <p><strong>Ingredients:</strong> ${recipe.ingredients.length}</p>
+    `;
 
-// Sort-buttons
+    container.appendChild(recipeCard);
+  });
+};
 
-sortButtons.forEach(button =>{
-    button.addEventListener("click", (event) => {
-        sortButtons.forEach(btn => btn.classList.remove("active"))
-        event.target.classList.add("active")
-    })
-})
-
-// Function to get message when button clicked
-
-document.querySelectorAll(".filter-btn, .sort-btn").forEach(button =>
-    button.addEventListener("click", () => {
-const newMessage = messages[button.dataset.filter] || 
-      messages[button.dataset.sort] || 
-      "No matching filter found."
-
-const paragraph = document.createElement("p")
-paragraph.innerText = newMessage
-messageList.appendChild(paragraph)
-
- if (messageList.children.length > maxMessages) {
-    messageList.removeChild(messageList.firstChild)
-}
-
-    })
-)
-
-// CHANGE PICTURE WITH FADE EFFECT + SHOW RECIPE CONTENT
-document.querySelectorAll(".filter-btn, .sort-btn").forEach(button =>
-    button.addEventListener("click", () => {
-        recipeImage.style.opacity = "0"
-        recipeContent.style.opacity = "0"
-
-        setTimeout(() => {
-            recipeImage.src = "assets/images/chicken.png" //
-            recipeImage.style.opacity = "1" // 
-            recipeContent.style.opacity = "1" // 
-            recipeContent.style.display = "block" //
-        }, 300)
-    })
-)
+// Visa alla recept när sidan laddas
+document.addEventListener("DOMContentLoaded", () => {
+  displayRecipes(recipes);
+});
