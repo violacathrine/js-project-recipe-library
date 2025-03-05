@@ -30,7 +30,7 @@ header {
     background-color: #ccffe2;
     color: #0018a4;
     cursor: pointer;
-    border: none;
+    border: 2px solid #FAFBFF;
     font-family: 'Times New Roman', Times, serif;
 }
 
