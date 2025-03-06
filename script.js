@@ -86,12 +86,12 @@ const recipes = [
     diets: [""],
     cuisine: "american",
     ingredients: [
-      "pasta",
-      "basil",
+      "bread",
+      "meat",
       "parmesan cheese",
-      "garlic",
-      "pine nuts",
-      "olive oil",
+      "coleslaw",
+      "cucumber",
+      "french fries",
       "salt",
       "black pepper"
     ],
@@ -193,7 +193,10 @@ const displayRecipes = (recipeList) => {
       <p><strong>Cuisine:</strong> ${capitalizeFirstLetter(recipe.cuisine)}</p>
       <p><strong>Time:</strong> ${recipe.readyInMinutes} min</p>
       <hr class="recipe-divider">
-      <p><strong>Ingredients:</strong> ${recipe.ingredients.length}</p>
+<p><strong>Ingredients:</strong> ${recipe.ingredients.length}</p>
+<ul class="ingredient-list">
+  ${recipe.ingredients.map(ingredient => `<li>${ingredient}</li>`).join("")}
+</ul>
     `;
 
     container.appendChild(recipeCard);

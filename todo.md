@@ -7,4 +7,4 @@ My todo-list for this project:
 [x] Make sure a message is displayed if no recipes match the filter
 [x] Add a function that shows what you have selected
 [] Media querys for buttons on ipads from 768-1024px
-[] Checkboxes so you can choose more than one filtering/sorting
+[] Checkboxes so you can choose more than one filtering/sortinggit add
