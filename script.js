@@ -1,13 +1,13 @@
 // DOM-element
+const selectedFiltersText = document.getElementById("selected-filters");
 const container = document.getElementById("recipe-container");
 const dietFilter = document.getElementById("diet-filter");
 const cuisineFilter = document.getElementById("cuisine-filter");
 const timeFilter = document.getElementById("time-filter");
 const sortFilter = document.getElementById("sort-filter");
+const ingredientFilter = document.getElementById("ingredient-filter");
 const clearBtn = document.getElementById("clearBtn"); // Kolla att ID:t matchar i HTML
 const randomBtn = document.getElementById("randomBtn"); // Knapp för slumpmässigt recept
-
-
 
 // Receptarray
 const recipes = [
@@ -18,7 +18,7 @@ const recipes = [
     readyInMinutes: 61,
     servings: 4,
     diets: ["vegan"],
-    cuisine: "Mediterranean",
+    cuisine: "mediterranean",
     ingredients: [
       "red lentils",
       "carrots",
@@ -40,7 +40,7 @@ const recipes = [
     readyInMinutes: 25,
     servings: 2,
     diets: ["vegetarian"],
-    cuisine: "Italian",
+    cuisine: "italian",
     ingredients: [
       "pasta",
       "basil",
@@ -60,7 +60,7 @@ const recipes = [
     readyInMinutes: 20,
     servings: 3,
     diets: ["gluten-free"],
-    cuisine: "Asian",
+    cuisine: "asian",
     ingredients: [
       "chicken breast",
       "broccoli",
@@ -84,7 +84,7 @@ const recipes = [
     readyInMinutes: 14,
     servings: 2,
     diets: [""],
-    cuisine: "American",
+    cuisine: "american",
     ingredients: [
       "pasta",
       "basil",
@@ -104,7 +104,7 @@ const recipes = [
     readyInMinutes: 31,
     servings: 4,
     diets: [""],
-    cuisine: "Italian",
+    cuisine: "italian",
     ingredients: [
       "red lentils",
       "carrots",
@@ -121,15 +121,66 @@ const recipes = [
   },
 ];
 
-const getRandomRecipe = () => {
-  const randomIndex = Math.floor(Math.random() * recipes.length); // Slumpmässigt index
-  const randomRecipe = recipes[randomIndex]; // Hämta receptet
-  displayRecipes([randomRecipe]); // Visa endast detta recept
+const capitalizeFirstLetter = (string) => {
+  return string.charAt(0).toUpperCase() + string.slice(1);
 };
 
-// Funktion för att visa recept
+
+const getRandomRecipe = () => {
+  const randomIndex = Math.floor(Math.random() * recipes.length);
+  const randomRecipe = recipes[randomIndex];
+
+  displayRecipes([randomRecipe]); // Visa endast det sylumpmässiga receptet
+
+  // Ändra texten så att den visar att ett slumpmässigt recept valdes
+  selectedFiltersText.textContent = "Here you go, a random selected recipe just for you!";
+};
+
+const updateSelectedFiltersText = () => {
+  let selectedFilters = [];
+  let sortedText = ""; // Lägg till denna variabel!
+
+  if (dietFilter.value !== "all") {
+    selectedFilters.push(`${capitalizeFirstLetter(dietFilter.value)}`);
+  }
+  if (cuisineFilter.value !== "all") {
+    selectedFilters.push(`${capitalizeFirstLetter(cuisineFilter.value)}`);
+  }
+  if (timeFilter.value !== "all") {
+    selectedFilters.push(`${capitalizeFirstLetter(timeFilter.options[timeFilter.selectedIndex].text)}`);
+  }
+  if (ingredientFilter && ingredientFilter.value !== "all") {
+    selectedFilters.push(`${capitalizeFirstLetter(ingredientFilter.options[ingredientFilter.selectedIndex].text)}`);
+  }
+
+  // Börja med standardtext
+  let filterText = selectedFilters.length > 0 ?
+    `Selected filters: ${selectedFilters.join(", ")}` :
+    "Selected filters: None";
+
+  // Hantera sortering separat
+  if (sortFilter.value !== "none") {
+    sortedText = `Sorted by: ${capitalizeFirstLetter(sortFilter.options[sortFilter.selectedIndex].text)}`;
+  }
+
+  // Uppdatera texten i HTML med radbrytning
+  selectedFiltersText.innerHTML = `
+    <div>${filterText}</div>
+    ${sortedText ? `<div>${sortedText}</div>` : ""}
+  `;
+};
+
+
 const displayRecipes = (recipeList) => {
   container.innerHTML = ""; // Rensa befintligt innehåll
+
+  // Om inga recept matchar filtren, visa ett meddelande
+  if (recipeList.length === 0) {
+    container.innerHTML = `
+      <p class="no-recipes">Sorry, no recipes found. Try adjusting your selections!</p>
+    `;
+    return; // Avbryter funktionen här
+  }
 
   recipeList.forEach(recipe => {
     const recipeCard = document.createElement("div");
@@ -139,7 +190,7 @@ const displayRecipes = (recipeList) => {
       <img src="${recipe.image}" alt="${recipe.title}">
       <h3>${recipe.title}</h3>
       <hr class="recipe-divider">
-      <p><strong>Cuisine:</strong> ${recipe.cuisine}</p>
+      <p><strong>Cuisine:</strong> ${capitalizeFirstLetter(recipe.cuisine)}</p>
       <p><strong>Time:</strong> ${recipe.readyInMinutes} min</p>
       <hr class="recipe-divider">
       <p><strong>Ingredients:</strong> ${recipe.ingredients.length}</p>
@@ -148,6 +199,7 @@ const displayRecipes = (recipeList) => {
     container.appendChild(recipeCard);
   });
 };
+
 
 const filterAndSortRecipes = () => {
   let filteredRecipes = [...recipes]; // Kopiera alla recept
@@ -164,7 +216,7 @@ const filterAndSortRecipes = () => {
   const selectedCuisine = cuisineFilter.value;
   if (selectedCuisine !== "all") {
     filteredRecipes = filteredRecipes.filter(recipe =>
-      recipe.cuisine.toLowerCase() === selectedCuisine
+      recipe.cuisine === selectedCuisine
     );
   }
 
@@ -201,6 +253,7 @@ const clearFilters = () => {
   cuisineFilter.value = "all";
   timeFilter.value = "all";
   sortFilter.value = "none";
+  if (ingredientFilter) ingredientFilter.value = "all";
 
   // Ta bort aktiva färgklasser
   dietFilter.classList.remove("active-filter");
@@ -210,6 +263,9 @@ const clearFilters = () => {
 
   // Visa alla recept igen
   displayRecipes(recipes);
+
+  // Uppdatera filtertexten till "None"
+  updateSelectedFiltersText();
 };
 
 
@@ -238,6 +294,12 @@ timeFilter.addEventListener("change", () => updateFilterStyle(timeFilter));
 sortFilter.addEventListener("change", () => updateFilterStyle(sortFilter));
 clearBtn.addEventListener("click", clearFilters);
 randomBtn.addEventListener("click", getRandomRecipe);
+
+dietFilter.addEventListener("change", updateSelectedFiltersText);
+cuisineFilter.addEventListener("change", updateSelectedFiltersText);
+timeFilter.addEventListener("change", updateSelectedFiltersText);
+sortFilter.addEventListener("change", updateSelectedFiltersText);
+if (ingredientFilter) ingredientFilter.addEventListener("change", updateSelectedFiltersText);
 
 
 document.addEventListener("DOMContentLoaded", () => {
