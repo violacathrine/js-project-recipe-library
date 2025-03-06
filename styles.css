@@ -45,6 +45,7 @@ header {
 
 #sort-filter {
     background-color: #ffecea;
+    color: #0018a4;
 }
 
 .filters select:focus,
@@ -57,8 +58,8 @@ header {
 
 #sort-filter:focus,
 #sort-filter:active {
-    background-color: #ff6589;
-    border: 2px solid #ff6589;
+    background-color: #ff6589 !important;
+    border: 2px solid #ff6589 !important;
     color: white;
     outline: none;
 }
@@ -66,10 +67,24 @@ header {
 select.active-filter {
     background-color: #0018a4;
     color: white;
-    border: 2px solid navy;
+    border: 2px solid #0018a4;
     outline: none;
 }
 
+/* Specifik stil för sorteringsknappen */
+select.sort-active {
+    background-color: #ff6680 !important;
+    color: white !important;
+    border: 2px solid #ff6680 !important;
+}
+
+/* Se till att sorteringsknappen INTE tappar färgen när man klickar utanför */
+#sort-filter:focus:not(.sort-active),
+#sort-filter:active:not(.sort-active) {
+    background-color: #ffecea;
+    border: 2px solid #FAFBFF;
+    color: #ffffff;
+}
 
 /* BUTTONS */
 #randomBtn,

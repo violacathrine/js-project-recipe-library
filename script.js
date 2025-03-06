@@ -4,6 +4,10 @@ const dietFilter = document.getElementById("diet-filter");
 const cuisineFilter = document.getElementById("cuisine-filter");
 const timeFilter = document.getElementById("time-filter");
 const sortFilter = document.getElementById("sort-filter");
+const clearBtn = document.getElementById("clearBtn"); // Kolla att ID:t matchar i HTML
+const randomBtn = document.getElementById("randomBtn"); // Knapp för slumpmässigt recept
+
+
 
 // Receptarray
 const recipes = [
@@ -117,6 +121,12 @@ const recipes = [
   },
 ];
 
+const getRandomRecipe = () => {
+  const randomIndex = Math.floor(Math.random() * recipes.length); // Slumpmässigt index
+  const randomRecipe = recipes[randomIndex]; // Hämta receptet
+  displayRecipes([randomRecipe]); // Visa endast detta recept
+};
+
 // Funktion för att visa recept
 const displayRecipes = (recipeList) => {
   container.innerHTML = ""; // Rensa befintligt innehåll
@@ -170,14 +180,52 @@ const filterAndSortRecipes = () => {
     });
   }
 
-  displayRecipes(filteredRecipes); // Visa recepten
+  // 🔹 Sortera efter valt alternativ
+  const selectedSort = sortFilter.value;
+  if (selectedSort === "time-asc") {
+    filteredRecipes.sort((a, b) => a.readyInMinutes - b.readyInMinutes); // Kortast tid först
+  } else if (selectedSort === "time-desc") {
+    filteredRecipes.sort((a, b) => b.readyInMinutes - a.readyInMinutes); // Längst tid först
+  } else if (selectedSort === "popularity-desc") {
+    filteredRecipes.sort((a, b) => b.popularity - a.popularity); // Mest populära först
+  } else if (selectedSort === "popularity-asc") {
+    filteredRecipes.sort((a, b) => a.popularity - b.popularity); // Minst populära först
+  }
+
+  displayRecipes(filteredRecipes); // Visa de filtrerade & sorterade recepten
 };
+
+const clearFilters = () => {
+  // Återställ alla dropdowns till sina standardvärden
+  dietFilter.value = "all";
+  cuisineFilter.value = "all";
+  timeFilter.value = "all";
+  sortFilter.value = "none";
+
+  // Ta bort aktiva färgklasser
+  dietFilter.classList.remove("active-filter");
+  cuisineFilter.classList.remove("active-filter");
+  timeFilter.classList.remove("active-filter");
+  sortFilter.classList.remove("sort-active");
+
+  // Visa alla recept igen
+  displayRecipes(recipes);
+};
+
 
 const updateFilterStyle = (filterElement) => {
-  // Om något val har gjorts NÅGON gång, behåll mörkblå färg
-  filterElement.classList.add("active-filter");
+  // Om det är sorteringsdropdownen, använd den rosa klassen
+  if (filterElement === sortFilter) {
+    if (filterElement.value !== "none") {
+      filterElement.classList.add("sort-active"); // Lägg till rosa färg
+    }
+  } else {
+    // För de andra dropdowns, använd standard blå färg
+    if (filterElement.value !== "all") {
+      filterElement.classList.add("active-filter");
+    }
+  }
 };
-
 
 // 🔹 Event listeners för att uppdatera filtreringen vid valändring
 dietFilter.addEventListener("change", filterAndSortRecipes);
@@ -188,13 +236,12 @@ dietFilter.addEventListener("change", () => updateFilterStyle(dietFilter));
 cuisineFilter.addEventListener("change", () => updateFilterStyle(cuisineFilter));
 timeFilter.addEventListener("change", () => updateFilterStyle(timeFilter));
 sortFilter.addEventListener("change", () => updateFilterStyle(sortFilter));
+clearBtn.addEventListener("click", clearFilters);
+randomBtn.addEventListener("click", getRandomRecipe);
 
-// 🔹 Visa alla recept direkt vid sidladdning
+
 document.addEventListener("DOMContentLoaded", () => {
   displayRecipes(recipes);
-});
-
-document.addEventListener("DOMContentLoaded", () => {
   dietFilter.classList.remove("active-filter");
   cuisineFilter.classList.remove("active-filter");
   timeFilter.classList.remove("active-filter");
