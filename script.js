@@ -173,14 +173,30 @@ const filterAndSortRecipes = () => {
   displayRecipes(filteredRecipes); // Visa recepten
 };
 
+const updateFilterStyle = (filterElement) => {
+  // Om något val har gjorts NÅGON gång, behåll mörkblå färg
+  filterElement.classList.add("active-filter");
+};
+
 
 // 🔹 Event listeners för att uppdatera filtreringen vid valändring
 dietFilter.addEventListener("change", filterAndSortRecipes);
 cuisineFilter.addEventListener("change", filterAndSortRecipes);
 timeFilter.addEventListener("change", filterAndSortRecipes);
 sortFilter.addEventListener("change", filterAndSortRecipes);
+dietFilter.addEventListener("change", () => updateFilterStyle(dietFilter));
+cuisineFilter.addEventListener("change", () => updateFilterStyle(cuisineFilter));
+timeFilter.addEventListener("change", () => updateFilterStyle(timeFilter));
+sortFilter.addEventListener("change", () => updateFilterStyle(sortFilter));
 
 // 🔹 Visa alla recept direkt vid sidladdning
 document.addEventListener("DOMContentLoaded", () => {
   displayRecipes(recipes);
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  dietFilter.classList.remove("active-filter");
+  cuisineFilter.classList.remove("active-filter");
+  timeFilter.classList.remove("active-filter");
+  sortFilter.classList.remove("active-filter");
 });
