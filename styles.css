@@ -25,7 +25,7 @@ header {
 .filters select {
     width: 90%;
     padding: 10px;
-    font-size: 14px;
+    font-size: 16px;
     border-radius: 10px;
     background-color: #ccffe2;
     color: #0018a4;
@@ -58,10 +58,31 @@ header {
 #sort-filter:focus,
 #sort-filter:active {
     background-color: #ff6589;
-    border-color: #0018a4;
+    border: 2px solid #ff6589;
     color: white;
     outline: none;
 }
+
+/* BUTTONS */
+
+#randomBtn,
+#clearBtn {
+    width: 160px;
+    padding: 10px;
+    font-size: 18px;
+    border-radius: 10px;
+    background-color: #ff6589;
+    color: #ffffff;
+    cursor: pointer;
+    border: 2px solid #FAFBFF;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+#randomBtn:hover,
+#clearBtn:hover {
+    border: 2px solid #0018a4;
+}
+
 
 /* RECIPE CARD */
 #recipe-container {
@@ -92,7 +113,7 @@ header {
 }
 
 .recipe-card h3 {
-    margin-top: 10px;
+    margin: 10px 0px 10px 0px;
     color: #0018a4;
     font-size: 18px;
 }
@@ -103,9 +124,17 @@ header {
 }
 
 .recipe-card p {
-    font-size: 14px;
-    color: #333;
+    font-size: 16px;
+    color: #000000;
+    margin: 5px 0px 5px 0px;
 }
+
+.recipe-divider {
+    border: none;
+    height: 2px;
+    background-color: #E9E9E9;
+}
+
 
 /* MEDIA QUERYS */
 @media (min-width: 768px) {
@@ -122,6 +151,12 @@ header {
     .filters select {
         max-width: 160px;
         padding: 10px;
-        font-size: 16px;
+        font-size: 18px;
+    }
+
+    /* RECIPE CARD */
+    #recipe-container {
+        width: 100%;
+
     }
 }

@@ -18,8 +18,7 @@
         <section class="filters">
 
             <select id="diet-filter">
-                <option value="diets">Diets</option>
-                <option value="all">All Diets</option>
+                <option value="all">Diets</option>
                 <option value="vegan">Vegan</option>
                 <option value="vegetarian">Vegetarian</option>
                 <option value="gluten-free">Gluten-free</option>
@@ -27,8 +26,7 @@
             </select>
 
             <select id="cuisine-filter">
-                <option value="cuisine">Cuisines</option>
-                <option value="all">All Cuisines</option>
+                <option value="all">Cuisines</option>
                 <option value="mediterranean">Mediterranean</option>
                 <option value="middle-eastern">Middle Eastern</option>
                 <option value="asian">Asian</option>
@@ -37,8 +35,8 @@
             </select>
 
             <select id="time-filter">
-                <option value="cooking-time">Cooking time</option>
-                <option value="all">All Times</option>
+
+                <option value="all">Cooking time</option>
                 <option value="under-15">Under 15 min</option>
                 <option value="15-30">15-30 min</option>
                 <option value="30-60">30-60 min</option>
@@ -46,11 +44,14 @@
             </select>
 
             <select id="sort-filter">
-                <option value="sort-by">Sort by</option>
-                <option value="time">Cooking Time</option>
-                <option value="popularity">Popularity</option>
-                <option value="none">No Sorting</option>
+                <option value="none">Sort by</option>
+                <option value="time-asc">Time ⏶</option>
+                <option value="time-desc">Time ⏷</option>
+                <option value="popularity-asc">Popularity ⏶</option>
+                <option value="popularity-desc">Popularity ⏷</option>
             </select>
+            <button id="randomBtn">Random recipe</button>
+            <button id="clearBtn">Clear filters</button>
         </section>
 
         <!-- Container för receptkort -->
