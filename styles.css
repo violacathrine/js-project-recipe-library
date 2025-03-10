@@ -1,6 +1,6 @@
 /* GLOBAL */
 body {
-    font-family: 'Times New Roman', serif;
+    font-family: arial;
     background-color: #FAFBFF;
     text-align: center;
 }
@@ -71,14 +71,13 @@ select.active-filter {
     outline: none;
 }
 
-/* Specifik stil för sorteringsknappen */
+/* SORT BUTTON SPEICIFIC STYLE */
 select.sort-active {
-    background-color: #ff6680 !important;
+    background-color: #ff6689 !important;
     color: white !important;
-    border: 2px solid #ff6680 !important;
+    border: 2px solid #ff6689 !important;
 }
 
-/* Se till att sorteringsknappen INTE tappar färgen när man klickar utanför */
 #sort-filter:focus:not(.sort-active),
 #sort-filter:active:not(.sort-active) {
     background-color: #ffecea;
@@ -105,6 +104,16 @@ select.sort-active {
     border: 2px solid #0018a4;
 }
 
+/* TEXT FOR NO RESULTS, HOW MANY RECIPES FOUND AND SELECTED FILTERS */
+#selected-filters,
+#recipe-count {
+    font-size: 18px;
+    font-weight: bold;
+    color: #0018a4;
+    text-align: center;
+    margin: 10px 0;
+    padding: 8px;
+}
 
 /* RECIPE CARD */
 #recipe-container {
@@ -116,6 +125,7 @@ select.sort-active {
 }
 
 .recipe-card {
+    font-family: 'Times New Roman', Times, serif;
     background-color: white;
     padding: 15px;
     border-radius: 10px;

@@ -1,13 +1,14 @@
 // DOM-element
 const selectedFiltersText = document.getElementById("selected-filters");
-const container = document.getElementById("recipe-container");
 const dietFilter = document.getElementById("diet-filter");
 const cuisineFilter = document.getElementById("cuisine-filter");
 const timeFilter = document.getElementById("time-filter");
 const sortFilter = document.getElementById("sort-filter");
 const ingredientFilter = document.getElementById("ingredient-filter");
-const clearBtn = document.getElementById("clearBtn"); // Kolla att ID:t matchar i HTML
-const randomBtn = document.getElementById("randomBtn"); // Knapp för slumpmässigt recept
+const clearBtn = document.getElementById("clearBtn");
+const randomBtn = document.getElementById("randomBtn");
+const container = document.getElementById("recipe-container");
+const recipeCountElement = document.getElementById("recipe-count");
 
 // Receptarray
 const recipes = [
@@ -130,7 +131,7 @@ const getRandomRecipe = () => {
   const randomIndex = Math.floor(Math.random() * recipes.length);
   const randomRecipe = recipes[randomIndex];
 
-  displayRecipes([randomRecipe]); // Visa endast det sylumpmässiga receptet
+  displayRecipes([randomRecipe]); // Visa endast det slumpmässiga receptet
 
   // Ändra texten så att den visar att ett slumpmässigt recept valdes
   selectedFiltersText.textContent = "Here you go, a random selected recipe just for you!";
@@ -138,7 +139,7 @@ const getRandomRecipe = () => {
 
 const updateSelectedFiltersText = () => {
   let selectedFilters = [];
-  let sortedText = ""; // Lägg till denna variabel!
+  let sortedText = "";
 
   if (dietFilter.value !== "all") {
     selectedFilters.push(`${capitalizeFirstLetter(dietFilter.value)}`);
@@ -156,7 +157,7 @@ const updateSelectedFiltersText = () => {
   // Börja med standardtext
   let filterText = selectedFilters.length > 0 ?
     `Selected filters: ${selectedFilters.join(", ")}` :
-    "Selected filters: None";
+    "Selected filters: All";
 
   // Hantera sortering separat
   if (sortFilter.value !== "none") {
@@ -170,9 +171,15 @@ const updateSelectedFiltersText = () => {
   `;
 };
 
+const updateRecipeCount = (recipeList) => {
+  if (recipeCountElement) {
+    recipeCountElement.textContent = `Showing recipes: ${recipeList.length}`;
+  }
+}
 
 const displayRecipes = (recipeList) => {
   container.innerHTML = ""; // Rensa befintligt innehåll
+  updateRecipeCount(recipeList);
 
   // Om inga recept matchar filtren, visa ett meddelande
   if (recipeList.length === 0) {
@@ -205,7 +212,7 @@ const displayRecipes = (recipeList) => {
 
 
 const filterAndSortRecipes = () => {
-  let filteredRecipes = [...recipes]; // Kopiera alla recept
+  let filteredRecipes = [...recipes];
 
   // 🔹 Filtrera baserat på diet (om inte "All" är valt)
   const selectedDiet = dietFilter.value;
@@ -291,6 +298,7 @@ dietFilter.addEventListener("change", filterAndSortRecipes);
 cuisineFilter.addEventListener("change", filterAndSortRecipes);
 timeFilter.addEventListener("change", filterAndSortRecipes);
 sortFilter.addEventListener("change", filterAndSortRecipes);
+
 dietFilter.addEventListener("change", () => updateFilterStyle(dietFilter));
 cuisineFilter.addEventListener("change", () => updateFilterStyle(cuisineFilter));
 timeFilter.addEventListener("change", () => updateFilterStyle(timeFilter));
@@ -304,11 +312,8 @@ timeFilter.addEventListener("change", updateSelectedFiltersText);
 sortFilter.addEventListener("change", updateSelectedFiltersText);
 if (ingredientFilter) ingredientFilter.addEventListener("change", updateSelectedFiltersText);
 
-
-document.addEventListener("DOMContentLoaded", () => {
-  displayRecipes(recipes);
-  dietFilter.classList.remove("active-filter");
-  cuisineFilter.classList.remove("active-filter");
-  timeFilter.classList.remove("active-filter");
-  sortFilter.classList.remove("active-filter");
-});
+displayRecipes(recipes);
+dietFilter.classList.remove("active-filter");
+cuisineFilter.classList.remove("active-filter");
+timeFilter.classList.remove("active-filter");
+sortFilter.classList.remove("active-filter");
