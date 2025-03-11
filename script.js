@@ -1,6 +1,5 @@
 // DOM-element
-document.getElementById("loading").style.display = "block"; // ✅ Visa laddningsindikator
-document.getElementById("loading").style.display = "none"; // ✅ Göm indikatorn när datan hämtats
+const loadingIndicator = document.getElementById("loading");
 const selectedFiltersText = document.getElementById("selected-filters");
 const dietFilter = document.getElementById("diet-filter");
 const cuisineFilter = document.getElementById("cuisine-filter");
@@ -15,123 +14,18 @@ const searchInput = document.getElementById("search-input");
 
 let recipes = [];
 
-/*Receptarray
-const recipes = [
-  {
-    id: 1,
-    title: "Vegan Lentil Soup",
-    image: "/assets/images/placeholder.png",
-    readyInMinutes: 61,
-    servings: 4,
-    diets: ["vegan"],
-    cuisine: "mediterranean",
-    ingredients: [
-      "red lentils",
-      "carrots",
-      "onion",
-      "garlic",
-      "tomato paste",
-      "cumin",
-      "paprika",
-      "vegetable broth",
-      "olive oil",
-      "salt"
-    ],
-    popularity: 85
-  },
-  {
-    id: 2,
-    title: "Vegetarian Pesto Pasta",
-    image: "/assets/images/placeholder.png",
-    readyInMinutes: 25,
-    servings: 2,
-    diets: ["vegetarian"],
-    cuisine: "italian",
-    ingredients: [
-      "pasta",
-      "basil",
-      "parmesan cheese",
-      "garlic",
-      "pine nuts",
-      "olive oil",
-      "salt",
-      "black pepper"
-    ],
-    popularity: 92
-  },
-  {
-    id: 3,
-    title: "Gluten-Free Chicken Stir-Fry",
-    image: "/assets/images/placeholder.png",
-    readyInMinutes: 20,
-    servings: 3,
-    diets: ["gluten-free"],
-    cuisine: "asian",
-    ingredients: [
-      "chicken breast",
-      "broccoli",
-      "bell pepper",
-      "carrot",
-      "soy sauce (gluten-free)",
-      "ginger",
-      "garlic",
-      "sesame oil",
-      "cornstarch",
-      "green onion",
-      "sesame seeds",
-      "rice"
-    ],
-    popularity: 78
-  },
-  {
-    id: 4,
-    title: "Classic American Hamburger",
-    image: "/assets/images/placeholder.png",
-    readyInMinutes: 14,
-    servings: 2,
-    diets: [""],
-    cuisine: "american",
-    ingredients: [
-      "bread",
-      "meat",
-      "parmesan cheese",
-      "coleslaw",
-      "cucumber",
-      "french fries",
-      "salt",
-      "black pepper"
-    ],
-    popularity: 92
-  },
-  {
-    id: 5,
-    title: "Pizza Margherita",
-    image: "/assets/images/placeholder.png",
-    readyInMinutes: 31,
-    servings: 4,
-    diets: [""],
-    cuisine: "italian",
-    ingredients: [
-      "red lentils",
-      "carrots",
-      "onion",
-      "garlic",
-      "tomato paste",
-      "cumin",
-      "paprika",
-      "vegetable broth",
-      "olive oil",
-      "salt"
-    ],
-    popularity: 85
-  },
-];
-*/
+// FUNCTIONS //
+
+const toggleLoading = (show) => {
+  loadingIndicator.style.display = show ? "block" : "none";
+};
 
 const fetchRecipes = async () => {
+  toggleLoading(true); // Show loading indicator
+
   try {
-    const apiKey = "29753ab3087c46f9ab04a6285b8c1ea0"; // Ersätt med din Spoonacular API-nyckel
-    const response = await fetch(`https://api.spoonacular.com/recipes/random?number=10&apiKey=${apiKey}`);
+    const apiKey = "29753ab3087c46f9ab04a6285b8c1ea0"; // My API-key
+    const response = await fetch(`https://api.spoonacular.com/recipes/random?number=5&apiKey=${apiKey}`);
 
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
@@ -139,17 +33,20 @@ const fetchRecipes = async () => {
 
     const data = await response.json();
 
-    if (!data.recipes || !Array.isArray(data.recipes)) {  // ✅ Kontrollera att API:et returnerar en array
+    if (!data.recipes || !Array.isArray(data.recipes)) {  // Check if the data is valid
       return [];
-    }
-    return data.recipes; // API returnerar recepten i en "recipes"-array
+    } return data.recipes; // API returns an array of recipes
   } catch (error) {
-    console.error("Error fetching recipes:", error);
-    return []; // Returnera en tom array om något går fel
+    return []; // Return an empty array if something goes wrong 
   } finally {
-  };
-}
+    toggleLoading(false); // Hide loading indicator
+  }
+};
 
+const showAllRecipes = () => {
+  displayRecipes(recipes);
+  updateSelectedFiltersText();
+};
 
 const capitalizeFirstLetter = (string) => {
   return string.charAt(0).toUpperCase() + string.slice(1);
@@ -206,17 +103,17 @@ const updateRecipeCount = (recipeList) => {
 }
 
 const displayRecipes = (recipeList = []) => {
-  if (!Array.isArray(recipeList)) {  // ✅ Säkerhetskontroll
+  if (!Array.isArray(recipeList)) {  // Saftey check
     console.error("Error: recipeList is not an array!", recipeList);
     return;
   }
 
-  container.innerHTML = ""; // Rensa innehållet
+  container.innerHTML = "";
 
-  // ✅ Uppdatera antalet recept (ingen extra hämtning av element behövs)
+  // Update recipe count
   recipeCountElement.textContent = `Showing recipes: ${recipeList.length}`;
 
-  // Visa meddelande om inga recept hittas
+  // Show message if no recipes are found
   if (recipeList.length === 0) {
     container.innerHTML = `
         <p class="no-recipes">Sorry, no recipes found. Try adjusting your selections!</p>
@@ -224,13 +121,17 @@ const displayRecipes = (recipeList = []) => {
     return;
   }
 
-  // ✅ Skapa och visa receptkort
+  // Create and display recipe cards
   recipeList.forEach(recipe => {
     const recipeCard = document.createElement("div");
     recipeCard.classList.add("recipe-card");
 
     const image = recipe.image || "https://via.placeholder.com/300";
-    const cuisine = recipe.cuisines?.length ? recipe.cuisines.join(", ") : "Unknown";
+    const cuisine = recipe.cuisines?.length
+      ? recipe.cuisines.join(", ")
+      : recipe.dishTypes?.length
+        ? recipe.dishTypes.join(", ")
+        : "Not specified";
     const ingredients = recipe.extendedIngredients?.length
       ? recipe.extendedIngredients.map(ing => ing.name).join(", ")
       : "No ingredients listed";
@@ -264,9 +165,10 @@ const filterAndSortRecipes = () => {
   // Filterering based on cuisine if not "All" is selected
   const selectedCuisine = cuisineFilter.value;
   if (selectedCuisine !== "all") {
-    filteredRecipes = filteredRecipes.filter(recipe =>
-      recipe.cuisine === selectedCuisine
-    );
+    filteredRecipes = filteredRecipes.filter(recipe => {
+      const cuisines = recipe.cuisines || recipe.dishTypes || [];
+      return cuisines.some(cuisine => cuisine.toLowerCase() === selectedCuisine.toLowerCase());
+    });
   }
 
   // Filtering based on time if not "All" is selected
@@ -285,24 +187,24 @@ const filterAndSortRecipes = () => {
   const selectedSort = sortFilter.value;
   if (selectedSort === "time-asc") {
     filteredRecipes.sort((a, b) => a.readyInMinutes - b.readyInMinutes); // Shortest time first
-  } else if (selectedSort === "time-desc") {
-    filteredRecipes.sort((a, b) => b.readyInMinutes - a.readyInMinutes); // Longest time first
   } else if (selectedSort === "popularity-desc") {
-    filteredRecipes.sort((a, b) => b.popularity - a.popularity); // Most popular first
+    filteredRecipes.sort((a, b) => (b.aggregateLikes || 0) - (a.aggregateLikes || 0));
   } else if (selectedSort === "popularity-asc") {
-    filteredRecipes.sort((a, b) => a.popularity - b.popularity); // Least popular first
+    filteredRecipes.sort((a, b) => (a.aggregateLikes || 0) - (b.aggregateLikes || 0));
   }
-
-  displayRecipes(filteredRecipes); // Call function
+  displayRecipes(filteredRecipes); // Call function to display recipes
 };
 
-// Clear filters 
+
+// Clear filters/searchbar function
 const clearFilters = () => {
   dietFilter.value = "all";
   cuisineFilter.value = "all";
   timeFilter.value = "all";
   sortFilter.value = "none";
   if (ingredientFilter) ingredientFilter.value = "all";
+
+  searchInput.value = ""; // Clear search input
 
   // Erase active colors on button
   dietFilter.classList.remove("active-filter");
@@ -319,7 +221,7 @@ const clearFilters = () => {
 
 
 const updateFilterStyle = (filterElement) => {
-  // If it is sort use pink color
+  // If it's sort use pink color
   if (filterElement === sortFilter) {
     if (filterElement.value !== "none") {
       filterElement.classList.add("sort-active"); // add pink color
@@ -333,54 +235,56 @@ const updateFilterStyle = (filterElement) => {
 };
 
 const searchRecipes = () => {
-  const query = searchInput.value.toLowerCase().trim(); // Hämta inmatning och gör den små bokstäver
+  const query = searchInput.value.toLowerCase().trim(); // Get search query and make it lowercase
 
   if (!query) {
-    displayRecipes(recipes); // Visa alla recept om fältet är tomt
+    displayRecipes(recipes); // Show all recipes if search is empty
     return;
   }
 
-  // Filtrera recepten baserat på titel eller ingredienser
+  // Filter recipes based on search query
   const filteredRecipes = recipes.filter(recipe =>
-    recipe.title.toLowerCase().includes(query) ||  // Sök i titeln
-    recipe.extendedIngredients.some(ing => ing.name.toLowerCase().includes(query)) // Sök i ingredienser
+    recipe.title.toLowerCase().includes(query) ||
+    (recipe.extendedIngredients || []).some(ing => ing.name.toLowerCase().includes(query))
   );
 
   displayRecipes(filteredRecipes);
 };
 
 
-// 🔹 Event listeners
-dietFilter.addEventListener("change", filterAndSortRecipes);
-cuisineFilter.addEventListener("change", filterAndSortRecipes);
-timeFilter.addEventListener("change", filterAndSortRecipes);
-sortFilter.addEventListener("change", filterAndSortRecipes);
+//  Lista with all filters to loop through
+const filters = [dietFilter, cuisineFilter, timeFilter, sortFilter];
 
-dietFilter.addEventListener("change", () => updateFilterStyle(dietFilter));
-cuisineFilter.addEventListener("change", () => updateFilterStyle(cuisineFilter));
-timeFilter.addEventListener("change", () => updateFilterStyle(timeFilter));
-sortFilter.addEventListener("change", () => updateFilterStyle(sortFilter));
+filters.forEach(filter => {
+  filter.addEventListener("change", () => {
+    if (filter.value === "all") {
+      showAllRecipes(); // Om "All" väljs, visa alla recept
+    } else {
+      filterAndSortRecipes(); // Annars filtrera som vanligt
+    }
+    updateFilterStyle(filter);
+    updateSelectedFiltersText();
+  });
+});
+
+
+// Eventlisteners for the clear filters and random button
 clearBtn.addEventListener("click", clearFilters);
 randomBtn.addEventListener("click", getRandomRecipe);
 
-dietFilter.addEventListener("change", updateSelectedFiltersText);
-cuisineFilter.addEventListener("change", updateSelectedFiltersText);
-timeFilter.addEventListener("change", updateSelectedFiltersText);
-sortFilter.addEventListener("change", updateSelectedFiltersText);
-if (ingredientFilter) ingredientFilter.addEventListener("change", updateSelectedFiltersText);
+// 
+if (ingredientFilter) {
+  ingredientFilter.addEventListener("change", updateSelectedFiltersText);
+}
 
-displayRecipes(recipes);
-dietFilter.classList.remove("active-filter");
-cuisineFilter.classList.remove("active-filter");
-timeFilter.classList.remove("active-filter");
-sortFilter.classList.remove("active-filter");
+// Eventlistener for search input
+searchInput.addEventListener("input", searchRecipes);
 
-searchInput.addEventListener("input", () => {
-  searchRecipes();
-});
+// Remove active color from filters
+filters.forEach(filter => filter.classList.remove("active-filter"));
 
 document.addEventListener("DOMContentLoaded", async () => {
-  recipes = await fetchRecipes(); // ✅ Uppdatera den globala variabeln
-  displayRecipes(recipes);
+  recipes = await fetchRecipes();
+  displayRecipes(recipes); // Show recipes AFTER they have been fetched
 });
 
