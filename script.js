@@ -139,8 +139,10 @@ const displayRecipes = (recipeList = []) => {
     recipeCard.innerHTML = `
       <img src="${image}" alt="${recipe.title}">
       <h3>${recipe.title}</h3>
+      <hr class="recipe-divider">
       <p><strong>Cuisine:</strong> ${cuisine}</p>
       <p><strong>Time:</strong> ${recipe.readyInMinutes} min</p>
+      <hr class="recipe-divider">
       <p><strong>Ingredients:</strong> ${ingredients}</p>
     `;
 
