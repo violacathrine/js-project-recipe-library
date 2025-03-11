@@ -1,4 +1,6 @@
 // DOM-element
+document.getElementById("loading").style.display = "block"; // ✅ Visa laddningsindikator
+document.getElementById("loading").style.display = "none"; // ✅ Göm indikatorn när datan hämtats
 const selectedFiltersText = document.getElementById("selected-filters");
 const dietFilter = document.getElementById("diet-filter");
 const cuisineFilter = document.getElementById("cuisine-filter");
@@ -10,7 +12,9 @@ const randomBtn = document.getElementById("randomBtn");
 const container = document.getElementById("recipe-container");
 const recipeCountElement = document.getElementById("recipe-count");
 
-// Receptarray
+let recipes = [];
+
+/*Receptarray
 const recipes = [
   {
     id: 1,
@@ -121,21 +125,44 @@ const recipes = [
     popularity: 85
   },
 ];
+*/
+
+const fetchRecipes = async () => {
+  try {
+    const apiKey = "29753ab3087c46f9ab04a6285b8c1ea0"; // Ersätt med din Spoonacular API-nyckel
+    const response = await fetch(`https://api.spoonacular.com/recipes/random?number=10&apiKey=${apiKey}`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.recipes || !Array.isArray(data.recipes)) {  // ✅ Kontrollera att API:et returnerar en array
+      return [];
+    }
+    return data.recipes; // API returnerar recepten i en "recipes"-array
+  } catch (error) {
+    console.error("Error fetching recipes:", error);
+    return []; // Returnera en tom array om något går fel
+  } finally {
+  };
+}
+
 
 const capitalizeFirstLetter = (string) => {
   return string.charAt(0).toUpperCase() + string.slice(1);
 };
 
-
 const getRandomRecipe = () => {
+  if (recipes.length === 0) {
+    selectedFiltersText.textContent = "No recipes available. Try again later.";
+    return;
+  }
   const randomIndex = Math.floor(Math.random() * recipes.length);
-  const randomRecipe = recipes[randomIndex];
-
-  displayRecipes([randomRecipe]); // Visa endast det slumpmässiga receptet
-
-  // Ändra texten så att den visar att ett slumpmässigt recept valdes
-  selectedFiltersText.textContent = "Here you go, a random selected recipe just for you!";
+  displayRecipes([recipes[randomIndex]]);
 };
+
 
 const updateSelectedFiltersText = () => {
   let selectedFilters = [];
@@ -154,17 +181,17 @@ const updateSelectedFiltersText = () => {
     selectedFilters.push(`${capitalizeFirstLetter(ingredientFilter.options[ingredientFilter.selectedIndex].text)}`);
   }
 
-  // Börja med standardtext
+  // Start with standard text
   let filterText = selectedFilters.length > 0 ?
     `Selected filters: ${selectedFilters.join(", ")}` :
     "Selected filters: All";
 
-  // Hantera sortering separat
+  // Sorting seperately
   if (sortFilter.value !== "none") {
     sortedText = `Sorted by: ${capitalizeFirstLetter(sortFilter.options[sortFilter.selectedIndex].text)}`;
   }
 
-  // Uppdatera texten i HTML med radbrytning
+  // Uppdate text at another row
   selectedFiltersText.innerHTML = `
     <div>${filterText}</div>
     ${sortedText ? `<div>${sortedText}</div>` : ""}
@@ -177,33 +204,39 @@ const updateRecipeCount = (recipeList) => {
   }
 }
 
-const displayRecipes = (recipeList) => {
-  container.innerHTML = ""; // Rensa befintligt innehåll
-  updateRecipeCount(recipeList);
+const displayRecipes = (recipeList = []) => {
+  if (!Array.isArray(recipeList)) {  // ✅ Säkerhetskontroll
+    console.error("Error: recipeList is not an array!", recipeList);
+    return;
+  }
 
-  // Om inga recept matchar filtren, visa ett meddelande
+  container.innerHTML = ""; // Rensa innehållet
+  updateRecipeCount(recipeList); // Uppdatera antal recept
+
   if (recipeList.length === 0) {
     container.innerHTML = `
       <p class="no-recipes">Sorry, no recipes found. Try adjusting your selections!</p>
     `;
-    return; // Avbryter funktionen här
+    return;
   }
 
   recipeList.forEach(recipe => {
     const recipeCard = document.createElement("div");
     recipeCard.classList.add("recipe-card");
 
+    // Hämta rätt data från Spoonacular API
+    const image = recipe.image || "https://via.placeholder.com/300";
+    const cuisine = recipe.cuisines.length > 0 ? recipe.cuisines.join(", ") : "Unknown";
+    const ingredients = recipe.extendedIngredients ? recipe.extendedIngredients.map(ing => ing.name).join(", ") : "No ingredients listed";
+
     recipeCard.innerHTML = `
-      <img src="${recipe.image}" alt="${recipe.title}">
+      <img src="${image}" alt="${recipe.title}">
       <h3>${recipe.title}</h3>
       <hr class="recipe-divider">
-      <p><strong>Cuisine:</strong> ${capitalizeFirstLetter(recipe.cuisine)}</p>
+      <p><strong>Cuisine:</strong> ${cuisine}</p>
       <p><strong>Time:</strong> ${recipe.readyInMinutes} min</p>
       <hr class="recipe-divider">
-<p><strong>Ingredients:</strong> ${recipe.ingredients.length}</p>
-<ul class="ingredient-list">
-  ${recipe.ingredients.map(ingredient => `<li>${ingredient}</li>`).join("")}
-</ul>
+      <p><strong>Ingredients:</strong> ${ingredients}</p>
     `;
 
     container.appendChild(recipeCard);
@@ -211,18 +244,22 @@ const displayRecipes = (recipeList) => {
 };
 
 
+
 const filterAndSortRecipes = () => {
   let filteredRecipes = [...recipes];
 
-  // 🔹 Filtrera baserat på diet (om inte "All" är valt)
+  // Filtering based on diet if not "All" is selected
   const selectedDiet = dietFilter.value;
   if (selectedDiet !== "all") {
-    filteredRecipes = filteredRecipes.filter(recipe =>
-      recipe.diets.includes(selectedDiet)
-    );
+    filteredRecipes = filteredRecipes.filter(recipe => {
+      if (selectedDiet === "vegetarian") return recipe.vegetarian;
+      if (selectedDiet === "vegan") return recipe.vegan;
+      if (selectedDiet === "gluten-free") return recipe.glutenFree;
+      return false;
+    });
   }
 
-  // 🔹 Filtrera baserat på cuisine (om inte "All" är valt)
+  // Filterering based on cuisine if not "All" is selected
   const selectedCuisine = cuisineFilter.value;
   if (selectedCuisine !== "all") {
     filteredRecipes = filteredRecipes.filter(recipe =>
@@ -230,7 +267,7 @@ const filterAndSortRecipes = () => {
     );
   }
 
-  // 🔹 Filtrera baserat på tillagningstid (om inte "All" är valt)
+  // Filtering based on time if not "All" is selected
   const selectedTime = timeFilter.value;
   if (selectedTime !== "all") {
     filteredRecipes = filteredRecipes.filter(recipe => {
@@ -242,58 +279,58 @@ const filterAndSortRecipes = () => {
     });
   }
 
-  // 🔹 Sortera efter valt alternativ
+  // Sorting based on selected sort option
   const selectedSort = sortFilter.value;
   if (selectedSort === "time-asc") {
-    filteredRecipes.sort((a, b) => a.readyInMinutes - b.readyInMinutes); // Kortast tid först
+    filteredRecipes.sort((a, b) => a.readyInMinutes - b.readyInMinutes); // Shortest time first
   } else if (selectedSort === "time-desc") {
-    filteredRecipes.sort((a, b) => b.readyInMinutes - a.readyInMinutes); // Längst tid först
+    filteredRecipes.sort((a, b) => b.readyInMinutes - a.readyInMinutes); // Longest time first
   } else if (selectedSort === "popularity-desc") {
-    filteredRecipes.sort((a, b) => b.popularity - a.popularity); // Mest populära först
+    filteredRecipes.sort((a, b) => b.popularity - a.popularity); // Most popular first
   } else if (selectedSort === "popularity-asc") {
-    filteredRecipes.sort((a, b) => a.popularity - b.popularity); // Minst populära först
+    filteredRecipes.sort((a, b) => a.popularity - b.popularity); // Least popular first
   }
 
-  displayRecipes(filteredRecipes); // Visa de filtrerade & sorterade recepten
+  displayRecipes(filteredRecipes); // Call function
 };
 
+// Clear filters 
 const clearFilters = () => {
-  // Återställ alla dropdowns till sina standardvärden
   dietFilter.value = "all";
   cuisineFilter.value = "all";
   timeFilter.value = "all";
   sortFilter.value = "none";
   if (ingredientFilter) ingredientFilter.value = "all";
 
-  // Ta bort aktiva färgklasser
+  // Erase active colors on button
   dietFilter.classList.remove("active-filter");
   cuisineFilter.classList.remove("active-filter");
   timeFilter.classList.remove("active-filter");
   sortFilter.classList.remove("sort-active");
 
-  // Visa alla recept igen
+  // Show all recipes again
   displayRecipes(recipes);
 
-  // Uppdatera filtertexten till "None"
+  // Uppdate filtertext
   updateSelectedFiltersText();
 };
 
 
 const updateFilterStyle = (filterElement) => {
-  // Om det är sorteringsdropdownen, använd den rosa klassen
+  // If it is sort use pink color
   if (filterElement === sortFilter) {
     if (filterElement.value !== "none") {
-      filterElement.classList.add("sort-active"); // Lägg till rosa färg
+      filterElement.classList.add("sort-active"); // add pink color
     }
   } else {
-    // För de andra dropdowns, använd standard blå färg
+    // For other filters use blue color
     if (filterElement.value !== "all") {
       filterElement.classList.add("active-filter");
     }
   }
 };
 
-// 🔹 Event listeners för att uppdatera filtreringen vid valändring
+// 🔹 Event listeners
 dietFilter.addEventListener("change", filterAndSortRecipes);
 cuisineFilter.addEventListener("change", filterAndSortRecipes);
 timeFilter.addEventListener("change", filterAndSortRecipes);
@@ -317,3 +354,9 @@ dietFilter.classList.remove("active-filter");
 cuisineFilter.classList.remove("active-filter");
 timeFilter.classList.remove("active-filter");
 sortFilter.classList.remove("active-filter");
+
+document.addEventListener("DOMContentLoaded", async () => {
+  recipes = await fetchRecipes(); // ✅ Uppdatera den globala variabeln
+  displayRecipes(recipes);
+});
+

@@ -44,10 +44,8 @@
 
             <select id="sort-filter">
                 <option value="none">Sort by</option>
-                <option value="time-asc">Time ⏶</option>
-                <option value="time-desc">Time ⏷</option>
-                <option value="popularity-desc">Popularity ⏶</option>
-                <option value="popularity-asc">Popularity ⏷</option>
+                <option value="time-asc">Time</option>
+                <option value="popularity-desc">Popularity</option>
             </select>
             <button id="randomBtn">Random recipe</button>
             <button id="clearBtn">Clear filters</button>
@@ -55,6 +53,7 @@
 
         <p id="selected-filters">All filter and sorting selected</p>
         <p id="recipe-count"></p>
+        <div id="loading" style="display: none;">Loading recipes...</div>
         <section id="recipe-container">
         </section>
 
