@@ -47,15 +47,21 @@
                 <option value="time-asc">Time</option>
                 <option value="popularity-desc">Popularity</option>
             </select>
+
             <button id="randomBtn">Random recipe</button>
             <button id="clearBtn">Clear filters</button>
         </section>
 
         <p id="selected-filters">All filter and sorting selected</p>
-        <p id="recipe-count"></p>
-        <div id="loading" style="display: none;">Loading recipes...</div>
+
+        <div id="search-container" class="search-container">
+            <p id="recipe-count"></p>
+            <input type="text" id="search-input" placeholder="Search recipes..." />
+        </div>
+
         <section id="recipe-container">
         </section>
+        <div id="loading" style="display: none;">Loading recipes...</div>
 
     </main>
 

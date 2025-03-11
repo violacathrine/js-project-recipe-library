@@ -13,7 +13,7 @@ My todo-list for this project:
 
 Requirements for week 7: 
 [x] Get real recipes from Spoonacular API 
-[] Show recipe cards based on API data 
+[x] Show recipe cards based on API data 
 [] Customize filtering/sorting to API 
 [] Show an error message if the API quota is exhausted
 

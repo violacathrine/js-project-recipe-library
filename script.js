@@ -11,6 +11,7 @@ const clearBtn = document.getElementById("clearBtn");
 const randomBtn = document.getElementById("randomBtn");
 const container = document.getElementById("recipe-container");
 const recipeCountElement = document.getElementById("recipe-count");
+const searchInput = document.getElementById("search-input");
 
 let recipes = [];
 
@@ -211,39 +212,40 @@ const displayRecipes = (recipeList = []) => {
   }
 
   container.innerHTML = ""; // Rensa innehållet
-  updateRecipeCount(recipeList); // Uppdatera antal recept
 
+  // ✅ Uppdatera antalet recept (ingen extra hämtning av element behövs)
+  recipeCountElement.textContent = `Showing recipes: ${recipeList.length}`;
+
+  // Visa meddelande om inga recept hittas
   if (recipeList.length === 0) {
     container.innerHTML = `
-      <p class="no-recipes">Sorry, no recipes found. Try adjusting your selections!</p>
-    `;
+        <p class="no-recipes">Sorry, no recipes found. Try adjusting your selections!</p>
+      `;
     return;
   }
 
+  // ✅ Skapa och visa receptkort
   recipeList.forEach(recipe => {
     const recipeCard = document.createElement("div");
     recipeCard.classList.add("recipe-card");
 
-    // Hämta rätt data från Spoonacular API
     const image = recipe.image || "https://via.placeholder.com/300";
-    const cuisine = recipe.cuisines.length > 0 ? recipe.cuisines.join(", ") : "Unknown";
-    const ingredients = recipe.extendedIngredients ? recipe.extendedIngredients.map(ing => ing.name).join(", ") : "No ingredients listed";
+    const cuisine = recipe.cuisines?.length ? recipe.cuisines.join(", ") : "Unknown";
+    const ingredients = recipe.extendedIngredients?.length
+      ? recipe.extendedIngredients.map(ing => ing.name).join(", ")
+      : "No ingredients listed";
 
     recipeCard.innerHTML = `
       <img src="${image}" alt="${recipe.title}">
       <h3>${recipe.title}</h3>
-      <hr class="recipe-divider">
       <p><strong>Cuisine:</strong> ${cuisine}</p>
       <p><strong>Time:</strong> ${recipe.readyInMinutes} min</p>
-      <hr class="recipe-divider">
       <p><strong>Ingredients:</strong> ${ingredients}</p>
     `;
 
     container.appendChild(recipeCard);
   });
 };
-
-
 
 const filterAndSortRecipes = () => {
   let filteredRecipes = [...recipes];
@@ -330,6 +332,24 @@ const updateFilterStyle = (filterElement) => {
   }
 };
 
+const searchRecipes = () => {
+  const query = searchInput.value.toLowerCase().trim(); // Hämta inmatning och gör den små bokstäver
+
+  if (!query) {
+    displayRecipes(recipes); // Visa alla recept om fältet är tomt
+    return;
+  }
+
+  // Filtrera recepten baserat på titel eller ingredienser
+  const filteredRecipes = recipes.filter(recipe =>
+    recipe.title.toLowerCase().includes(query) ||  // Sök i titeln
+    recipe.extendedIngredients.some(ing => ing.name.toLowerCase().includes(query)) // Sök i ingredienser
+  );
+
+  displayRecipes(filteredRecipes);
+};
+
+
 // 🔹 Event listeners
 dietFilter.addEventListener("change", filterAndSortRecipes);
 cuisineFilter.addEventListener("change", filterAndSortRecipes);
@@ -354,6 +374,10 @@ dietFilter.classList.remove("active-filter");
 cuisineFilter.classList.remove("active-filter");
 timeFilter.classList.remove("active-filter");
 sortFilter.classList.remove("active-filter");
+
+searchInput.addEventListener("input", () => {
+  searchRecipes();
+});
 
 document.addEventListener("DOMContentLoaded", async () => {
   recipes = await fetchRecipes(); // ✅ Uppdatera den globala variabeln
