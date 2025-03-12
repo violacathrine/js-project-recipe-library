@@ -8,10 +8,9 @@ My todo-list for this project:
 [x] Make sure a message is displayed if no recipes match the filter
 [x] Add a function that shows what you have selected
 [x] Media querys for buttons on ipads from 768-1024px
-[] Checkboxes so you can choose more than one filtering/sorting at the same time
 [x] Put in how many recipes are showing
-[] Media querys for the searchbar/recipe count ?
-[] Kolla filter så att dem stämmer??
+[] Checkboxes so you can choose more than one filtering/sorting at the same time
+- Optional
 
 
 Requirements for week 7: 
@@ -23,9 +22,9 @@ Requirements for week 7:
 
 Stretchgoals: 
 [x] Make your filters and sorting options work together so that the user, for example, can filter on vegetarian & popular recipes or Italian vegan recipes
-[] Implement local storage caching to reduce API requests
 [x] Show a loading state while fetching data
 [x] Allow users to search for specific recipe names or ingredients
+[] Implement local storage caching to reduce API requests
 [] Allow users to save/like recipes and store them in local storage. 
 - This includes adding a heart button to the recipe card and 
 - adding a "View favourites" button that only shows favourite recipes.

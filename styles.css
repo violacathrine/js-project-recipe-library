@@ -106,6 +106,7 @@ select.sort-active {
 
 /* TEXT FOR NO RESULTS, HOW MANY RECIPES FOUND AND SELECTED FILTERS */
 #selected-filters,
+#selected-sorting,
 #recipe-count,
 .no-recipes {
     font-size: 18px;
@@ -151,15 +152,11 @@ select.sort-active {
 /* ERROR MESSAGE*/
 .error-message {
     color: rgb(255, 255, 255);
-    font-size: 18px;
-    text-align: center;
-    margin-top: 20px;
+    background: #ff6589;
+    border-radius: 10px;
+    font-size: 16px;
     font-weight: bold;
-    background-color: #ff6589;
     padding: 10px;
-    border-radius: 5px;
-    display: block;
-    width: 100%;
 }
 
 .recipe-card {
@@ -242,7 +239,14 @@ select.sort-active {
     }
 
     .no-recipes {
-        margin: 100px;
+        margin: 20px;
+    }
+
+    /* ERROR MESSAGE*/
+    .error-message {
+        font-size: 18px;
+        padding: 30px;
+        margin-top: 50px;
     }
 
     /* RECIPE CARD */
