@@ -148,6 +148,20 @@ select.sort-active {
     gap: 20px;
 }
 
+/* ERROR MESSAGE*/
+.error-message {
+    color: rgb(255, 255, 255);
+    font-size: 18px;
+    text-align: center;
+    margin-top: 20px;
+    font-weight: bold;
+    background-color: #ff6589;
+    padding: 10px;
+    border-radius: 5px;
+    display: block;
+    width: 100%;
+}
+
 .recipe-card {
     font-family: 'Times New Roman', Times, serif;
     background-color: white;
@@ -191,18 +205,19 @@ select.sort-active {
     background-color: #E9E9E9;
 }
 
-.ingredient-list {
+.recipe-card ul {
     list-style: none;
-    margin-top: 8px;
-    padding-left: 0;
+    padding: 0;
+    margin: 0;
 }
 
-.ingredient-list li {
-    font-size: 16px;
-    color: #333;
-    line-height: 1.4;
+.recipe-card li {
+    padding: 4px 0;
 }
 
+.recipe-card li:last-child {
+    border-bottom: none;
+}
 
 /* MEDIA QUERYS */
 @media (min-width: 1024px) {

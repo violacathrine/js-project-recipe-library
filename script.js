@@ -1,5 +1,6 @@
 // DOM-element
 const loadingIndicator = document.getElementById("loading");
+const errorContainer = document.getElementById("error-container");
 const selectedFiltersText = document.getElementById("selected-filters");
 const dietFilter = document.getElementById("diet-filter");
 const cuisineFilter = document.getElementById("cuisine-filter");
@@ -16,42 +17,89 @@ let recipes = [];
 
 // FUNCTIONS //
 
+// LOADING INDICATOR
 const toggleLoading = (show) => {
   loadingIndicator.style.display = show ? "block" : "none";
 };
 
+// ERROR MESSAGE
+const showErrorMessage = (message) => {
+  console.log("🔴 showErrorMessage() körs: ", message);
+
+  loadingIndicator.style.display = "none"; // 🔥 Dölj "Loading recipes..."
+
+  // ✅ Rensa gamla felmeddelanden innan vi lägger till ett nytt
+  errorContainer.innerHTML = "";
+
+  /* 🔴 SE TILL ATT `errorContainer` VISAS
+  errorContainer.style.display = "flex";
+  errorContainer.style.justifyContent = "center";
+  errorContainer.style.alignItems = "center";
+  errorContainer.style.flexDirection = "column";
+  errorContainer.style.minHeight = "100px";
+  errorContainer.style.padding = "10px";
+  errorContainer.style.backgroundColor = "#ffe6e6"; */
+
+  // ✅ Skapa felmeddelandet och lägg det i `errorContainer`
+  const errorMessage = document.createElement("p");
+  errorMessage.textContent = message;
+  errorMessage.classList.add("error-message");
+
+  errorContainer.appendChild(errorMessage);
+
+  console.log("🟢 Error message added to errorContainer:", errorContainer.innerHTML);
+};
+
+// FETCH RECIPES FROM API //
+
 const fetchRecipes = async () => {
-  toggleLoading(true); // Show loading indicator
+  toggleLoading(true); // Show loading-indikator
 
   try {
-    const apiKey = "29753ab3087c46f9ab04a6285b8c1ea0"; // My API-key
-    const response = await fetch(`https://api.spoonacular.com/recipes/random?number=5&apiKey=${apiKey}`);
+    const apiKey = "29753ab3087c46f9ab04a6285b8c1ea0";
+    const response = await fetch(`https://api.spoonacular.com/recipes/random?number=100&apiKey=${apiKey}`);
 
     if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+      throw new Error(`Error! Status: ${response.status}`);
     }
 
     const data = await response.json();
+    const selectedCuisines = ["italian", "mediterranean", "middle eastern", "american", "asian"];
+    const filteredRecipes = data.recipes.filter(recipe =>
+      recipe.cuisines.some(cuisine => selectedCuisines.includes(cuisine.toLowerCase()))
+    );
 
-    if (!data.recipes || !Array.isArray(data.recipes)) {  // Check if the data is valid
-      return [];
-    } return data.recipes; // API returns an array of recipes
+    return filteredRecipes; // Return only filtered recipes
+
   } catch (error) {
-    return []; // Return an empty array if something goes wrong 
+    console.error("Error fetching recipes:", error);
+
+    // 🔴 Kontrollera statuskoden och visa rätt meddelande
+    if (error.message.includes("API quota exhausted") || error.message.includes("402")) {
+      showErrorMessage("🚨 API quota exhausted! Please try again later or upgrade your plan.");
+    } else {
+      showErrorMessage("⚠️ Failed to load recipes. Please try again later.");
+    }
+
+    return []; // Return empty array if error
+
   } finally {
-    toggleLoading(false); // Hide loading indicator
+    toggleLoading(false); // Hide loading
   }
 };
 
+// SHOW ALL RECIPES"
 const showAllRecipes = () => {
   displayRecipes(recipes);
   updateSelectedFiltersText();
 };
 
+// CAPITALIZE FIRST LETTER
 const capitalizeFirstLetter = (string) => {
   return string.charAt(0).toUpperCase() + string.slice(1);
 };
 
+// RANDOM RECIPE FUNCTION
 const getRandomRecipe = () => {
   if (recipes.length === 0) {
     selectedFiltersText.textContent = "No recipes available. Try again later.";
@@ -61,7 +109,7 @@ const getRandomRecipe = () => {
   displayRecipes([recipes[randomIndex]]);
 };
 
-
+// UPDATED SELECTED FILTERS TEXT
 const updateSelectedFiltersText = () => {
   let selectedFilters = [];
   let sortedText = "";
@@ -79,29 +127,31 @@ const updateSelectedFiltersText = () => {
     selectedFilters.push(`${capitalizeFirstLetter(ingredientFilter.options[ingredientFilter.selectedIndex].text)}`);
   }
 
-  // Start with standard text
+  // START WITH STANDARD TEXT
   let filterText = selectedFilters.length > 0 ?
     `Selected filters: ${selectedFilters.join(", ")}` :
     "Selected filters: All";
 
-  // Sorting seperately
+  // SORTING SEPERATELY
   if (sortFilter.value !== "none") {
     sortedText = `Sorted by: ${capitalizeFirstLetter(sortFilter.options[sortFilter.selectedIndex].text)}`;
   }
 
-  // Uppdate text at another row
+  // UPDATE TEXT AT SECOND ROW
   selectedFiltersText.innerHTML = `
     <div>${filterText}</div>
     ${sortedText ? `<div>${sortedText}</div>` : ""}
   `;
 };
 
+// RECIPE COUNT
 const updateRecipeCount = (recipeList) => {
   if (recipeCountElement) {
     recipeCountElement.textContent = `Showing recipes: ${recipeList.length}`;
   }
 }
 
+// DISPLAY RECIPES
 const displayRecipes = (recipeList = []) => {
   if (!Array.isArray(recipeList)) {  // Saftey check
     console.error("Error: recipeList is not an array!", recipeList);
@@ -123,23 +173,35 @@ const displayRecipes = (recipeList = []) => {
 
   // Create and display recipe cards
   recipeList.forEach(recipe => {
+    if (!recipe.image) return; // Skips recipes without image
+
     const recipeCard = document.createElement("div");
     recipeCard.classList.add("recipe-card");
 
-    const image = recipe.image || "https://via.placeholder.com/300";
+    const image = recipe.image;
+
+    const diet =
+      recipe.vegetarian ? "Vegetarian" :
+        recipe.vegan ? "Vegan" :
+          recipe.glutenFree ? "Gluten Free" :
+            recipe.dairyFree ? "Dairy Free" :
+              "No specific diet";
+
     const cuisine = recipe.cuisines?.length
       ? recipe.cuisines.join(", ")
-      : recipe.dishTypes?.length
-        ? recipe.dishTypes.join(", ")
-        : "Not specified";
+      : "Not specified";
+
+    const capitalizeFirstLetter = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+
     const ingredients = recipe.extendedIngredients?.length
-      ? recipe.extendedIngredients.map(ing => ing.name).join(", ")
-      : "No ingredients listed";
+      ? `<ul>${recipe.extendedIngredients.map(ing => `<li>${capitalizeFirstLetter(ing.name)}</li>`).join("")}</ul>`
+      : "<p>No ingredients listed</p>";
 
     recipeCard.innerHTML = `
       <img src="${image}" alt="${recipe.title}">
       <h3>${recipe.title}</h3>
       <hr class="recipe-divider">
+      <p><strong>Diet:</strong> ${diet}</p>
       <p><strong>Cuisine:</strong> ${cuisine}</p>
       <p><strong>Time:</strong> ${recipe.readyInMinutes} min</p>
       <hr class="recipe-divider">
@@ -153,52 +215,55 @@ const displayRecipes = (recipeList = []) => {
 const filterAndSortRecipes = () => {
   let filteredRecipes = [...recipes];
 
-  // Filtering based on diet if not "All" is selected
+  // Diet filter
   const selectedDiet = dietFilter.value;
   if (selectedDiet !== "all") {
     filteredRecipes = filteredRecipes.filter(recipe => {
-      if (selectedDiet === "vegetarian") return recipe.vegetarian;
-      if (selectedDiet === "vegan") return recipe.vegan;
-      if (selectedDiet === "gluten-free") return recipe.glutenFree;
+      if (selectedDiet === "vegetarian") return recipe.vegetarian === true;
+      if (selectedDiet === "vegan") return recipe.vegan === true;
+      if (selectedDiet === "gluten-free") return recipe.glutenFree === true;
+      if (selectedDiet === "dairy-free") return recipe.dairyFree === true;
       return false;
     });
   }
 
-  // Filterering based on cuisine if not "All" is selected
+  // Cuisine filter
+  const validCuisines = ["Mediterranean", "Middle Eastern", "Asian", "Italian", "American"];
   const selectedCuisine = cuisineFilter.value;
   if (selectedCuisine !== "all") {
-    filteredRecipes = filteredRecipes.filter(recipe => {
-      const cuisines = recipe.cuisines || recipe.dishTypes || [];
-      return cuisines.some(cuisine => cuisine.toLowerCase() === selectedCuisine.toLowerCase());
-    });
+    filteredRecipes = filteredRecipes.filter(recipe =>
+      (recipe.cuisines || []).some(cuisine => validCuisines.includes(cuisine) && cuisine.toLowerCase() === selectedCuisine.toLowerCase())
+    );
   }
 
-  // Filtering based on time if not "All" is selected
+  // Time filter
+  const timeRanges = {
+    "under-15": (time) => time < 15,
+    "15-30": (time) => time >= 15 && time <= 30,
+    "30-60": (time) => time > 30 && time <= 60,
+    "over-60": (time) => time > 60,
+  };
+
   const selectedTime = timeFilter.value;
   if (selectedTime !== "all") {
-    filteredRecipes = filteredRecipes.filter(recipe => {
-      if (selectedTime === "under-15") return recipe.readyInMinutes < 15;
-      if (selectedTime === "15-30") return recipe.readyInMinutes >= 15 && recipe.readyInMinutes <= 30;
-      if (selectedTime === "30-60") return recipe.readyInMinutes > 30 && recipe.readyInMinutes <= 60;
-      if (selectedTime === "over-60") return recipe.readyInMinutes > 60;
-      return false;
-    });
+    filteredRecipes = filteredRecipes.filter(recipe => timeRanges[selectedTime](recipe.readyInMinutes));
   }
 
-  // Sorting based on selected sort option
-  const selectedSort = sortFilter.value;
-  if (selectedSort === "time-asc") {
-    filteredRecipes.sort((a, b) => a.readyInMinutes - b.readyInMinutes); // Shortest time first
-  } else if (selectedSort === "popularity-desc") {
-    filteredRecipes.sort((a, b) => (b.aggregateLikes || 0) - (a.aggregateLikes || 0));
-  } else if (selectedSort === "popularity-asc") {
-    filteredRecipes.sort((a, b) => (a.aggregateLikes || 0) - (b.aggregateLikes || 0));
+  // Sorting
+  const sortingMethods = {
+    "time-asc": (a, b) => a.readyInMinutes - b.readyInMinutes,
+    "popularity-desc": (a, b) => (b.aggregateLikes || 0) - (a.aggregateLikes || 0),
+    "popularity-asc": (a, b) => (a.aggregateLikes || 0) - (b.aggregateLikes || 0),
+  };
+
+  if (sortFilter.value in sortingMethods) {
+    filteredRecipes.sort(sortingMethods[sortFilter.value]);
   }
-  displayRecipes(filteredRecipes); // Call function to display recipes
+
+  displayRecipes(filteredRecipes);
 };
 
-
-// Clear filters/searchbar function
+// CLEAR FILTERS AND SEARCH BAR
 const clearFilters = () => {
   dietFilter.value = "all";
   cuisineFilter.value = "all";
@@ -254,7 +319,7 @@ const searchRecipes = () => {
 };
 
 
-//  Lista with all filters to loop through
+//  List with all filters to loop through
 const filters = [dietFilter, cuisineFilter, timeFilter, sortFilter];
 
 filters.forEach(filter => {
@@ -270,7 +335,7 @@ filters.forEach(filter => {
 });
 
 
-// Eventlisteners for the clear filters and random button
+// EVENTLISTENERS //
 clearBtn.addEventListener("click", clearFilters);
 randomBtn.addEventListener("click", getRandomRecipe);
 
@@ -289,4 +354,3 @@ document.addEventListener("DOMContentLoaded", async () => {
   recipes = await fetchRecipes();
   displayRecipes(recipes); // Show recipes AFTER they have been fetched
 });
-

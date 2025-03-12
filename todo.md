@@ -18,11 +18,11 @@ Requirements for week 7:
 [x] Get real recipes from Spoonacular API 
 [/] Show recipe cards based on API data 
 - They are showing but need to be styled
-[] Customize filtering/sorting to API 
-[] Show an error message if the API quota is exhausted
+[x] Customize filtering/sorting to API 
+[x] Show an error message if the API quota is exhausted
 
 Stretchgoals: 
-[] Make your filters and sorting options work together so that the user, for example, can filter on vegetarian & popular recipes or Italian vegan recipes
+[x] Make your filters and sorting options work together so that the user, for example, can filter on vegetarian & popular recipes or Italian vegan recipes
 [] Implement local storage caching to reduce API requests
 [x] Show a loading state while fetching data
 [x] Allow users to search for specific recipe names or ingredients
