@@ -1,99 +1,110 @@
-// DOM-element
-const loadingIndicator = document.getElementById("loading");
-const errorContainer = document.getElementById("error-container");
-const selectedFiltersText = document.getElementById("selected-filters");
-const selectedSorting = document.getElementById("selected-sorting");
-const dietFilter = document.getElementById("diet-filter");
-const cuisineFilter = document.getElementById("cuisine-filter");
-const timeFilter = document.getElementById("time-filter");
-const sortFilter = document.getElementById("sort-filter");
-const clearBtn = document.getElementById("clearBtn");
-const randomBtn = document.getElementById("randomBtn");
-const container = document.getElementById("recipe-container");
-const recipeCountElement = document.getElementById("recipe-count");
-const searchInput = document.getElementById("search-input");
+// Function to get DOM element by ID
+const getElement = id => document.getElementById(id);
 
-// GLOBAL VARIABLES
-let recipes = [];
-let apiQuotaExceeded = false;
+// DOM ELEMENTS
+const elements = {
+  loadingIndicator: getElement("loading"),
+  errorContainer: getElement("error-container"),
+  selectedFiltersText: getElement("selected-filters"),
+  selectedSorting: getElement("selected-sorting"),
+  dietFilter: getElement("diet-filter"),
+  cuisineFilter: getElement("cuisine-filter"),
+  timeFilter: getElement("time-filter"),
+  sortFilter: getElement("sort-filter"),
+  clearBtn: getElement("clearBtn"),
+  randomBtn: getElement("randomBtn"),
+  container: getElement("recipe-container"),
+  recipeCountElement: getElement("recipe-count"),
+  searchInput: getElement("search-input"),
+};
+
+// GLOBAL STATE IN AN OBJECT FOR BETTER ORGANIZATION
+const state = {
+  recipes: [],
+  apiQuotaExceeded: false,
+};
 
 // LOCAL STORAGE LOAD SAVED RECIPES
 const loadSavedRecipes = () => {
   const savedData = localStorage.getItem("recipesData");
-
-  if (savedData) {
-    const { recipes: savedRecipes, savedDate } = JSON.parse(savedData);
-    const today = new Date().toISOString().split("T")[0];
-
-    if (savedDate === today) {
-      console.log("Loading recipes from Local Storage.");
-      recipes = savedRecipes;
-      displayRecipes(recipes);
-      return;
-    } else {
-      console.log("📅 Saved recipes are from a different day. Fetching new recipes.");
-    }
-  } else {
-    console.log("💾 No saved recipes found. Fetching new recipes.");
+  if (!savedData) {
+    console.log("No saved recipes found. Fetching new recipes.");
+    return fetchRecipes();
   }
 
-  console.log("🌐 Fetching new recipes from API...");
-  fetchRecipes(); // Hämta nya recept om det inte finns giltiga sparade recept
+  const { recipes: savedRecipes, savedDate } = JSON.parse(savedData);
+  const today = new Date().toISOString().split("T")[0];
+
+  if (savedDate === today) {
+    console.log(" Loading recipes from Local Storage.");
+    state.recipes = savedRecipes;
+    displayRecipes(state.recipes);
+    return;
+  }
+
+  console.log("📅 Saved recipes are outdated. Fetching new ones.");
+  fetchRecipes();
 };
 
+/* FUNCTION TO CAPITALIZE FIRST LETTER OF
+EACH WORD IN A STRING IF OUTCOME FROM API IS DIFFERENT */
+const capitalizeString = str => str.charAt(0).toUpperCase() + str.slice(1);
 
-// FUNCTION TO CAPITALIZE FIRST LETTER OF EACH WORD IN A STRING
-const capitalize = (input) => {
-  if (Array.isArray(input)) {
-    return input.map(item => item.charAt(0).toUpperCase() + item.slice(1));
-  } else if (typeof input === "string") {
-    return input.charAt(0).toUpperCase() + input.slice(1);
-  }
-  return input; // Return unchanged if not string or array
+const capitalize = input => {
+  if (Array.isArray(input)) return input.map(capitalizeString);
+  if (typeof input === "string") return capitalizeString(input);
+  return input;
 };
 
 // LOADING INDICATOR
-const toggleLoading = (show) => {
-  loadingIndicator.style.display = show ? "block" : "none";
+const toggleLoading = show => {
+  elements.loadingIndicator.style.display = show ? "block" : "none";
 };
 
 // ERROR MESSAGE
-const showErrorMessage = (message) => {
-  loadingIndicator.style.display = "none";
-  errorContainer.innerHTML = `<p class="error-message">${message}</p>`;
-  apiQuotaExceeded = true;
+const showErrorMessage = (message = "An unknown error occurred.") => {
+  toggleLoading(false);
+  elements.errorContainer.innerHTML = `<p class="error-message">${message}</p>`;
+  state.apiQuotaExceeded = true;
 };
 
-// FETCH RECIPES FROM API
+// "CALLING THE API DATA"
+const getRecipesFromAPI = async () => {
+  const apiKey = "b362b9edeed54639b64b0e6176d9ab9e";
+  const response = await fetch(`https://api.spoonacular.com/recipes/random?number=100&apiKey=${apiKey}`);
+
+  if (!response.ok) {
+    throw new Error(`Error! Status: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.recipes;
+};
+
+
+// "SAVING" THE API-DATA
 const fetchRecipes = async () => {
   toggleLoading(true);
-  apiQuotaExceeded = false;
+  state.apiQuotaExceeded = false;
 
   try {
-    const apiKey = "b362b9edeed54639b64b0e6176d9ab9e";
-    const response = await fetch(`https://api.spoonacular.com/recipes/random?number=100&apiKey=${apiKey}`);
+    const recipes = await getRecipesFromAPI();
+    state.recipes = recipes;
 
-    if (!response.ok) {
-      throw new Error(`Error! Status: ${response.status}`);
-    }
-    const data = await response.json();
-    recipes = data.recipes;
-
-    const today = new Date().toISOString().split("T")[0]; // "YYYY-MM-DD"
+    const today = new Date().toISOString().split("T")[0];
     localStorage.setItem("recipesData", JSON.stringify({ recipes, savedDate: today }));
 
     console.log("New recipes saved in Local Storage.");
-    displayRecipes(recipes);
-
+    displayRecipes(state.recipes);
   } catch (error) {
     console.error("Error fetching recipes:", error);
-    showErrorMessage("⚠️ Failed to load recipes. Please try again later.");
-    recipes = [];
-
+    showErrorMessage("Failed to load recipes. Please try again later.");
+    state.recipes = [];
   } finally {
     toggleLoading(false);
   }
 };
+
 
 // DISPLAY RECIPES
 const displayRecipes = (recipeList = []) => {
@@ -102,222 +113,260 @@ const displayRecipes = (recipeList = []) => {
     return;
   }
 
-  container.innerHTML = "";
-  recipeCountElement.textContent = `Showing recipes: ${recipeList.length}`;
-  if (apiQuotaExceeded) return;
+  elements.container.innerHTML = "";
+  elements.recipeCountElement.textContent = `Showing recipes: ${recipeList.length}`;
+  if (state.apiQuotaExceeded) return;
 
   if (recipeList.length === 0) {
-    container.innerHTML = `<p class="no-recipes">Sorry, no recipes found. Try adjusting your selections!</p>`;
+    elements.container.innerHTML = `<p class="no-recipes">Sorry, no recipes found. Try adjusting your selections!</p>`;
     return;
   }
 
   recipeList.forEach(recipe => {
     if (!recipe.image) return;
+    elements.container.appendChild(createRecipeCard(recipe));
+  });
+};
 
-    const recipeCard = document.createElement("div");
-    recipeCard.classList.add("recipe-card");
+// CREATE RECIPE CARD
+const createRecipeCard = recipe => {
+  const recipeCard = document.createElement("div");
+  recipeCard.classList.add("recipe-card");
 
-    const allowedDiets = ["vegan", "vegetarian", "gluten-free", "dairy-free"];
-    const dietList = [];
+  const finalDiet = getDietText(recipe);
+  const cuisine = recipe.cuisines?.length ? capitalize(recipe.cuisines).join(", ") : "Not specified";
+  const time = recipe.readyInMinutes ? `${recipe.readyInMinutes} min` : "Unknown time";
+  const ingredients = recipe.extendedIngredients?.length
+    ? capitalize(recipe.extendedIngredients.map(ing => ing.name)).join(", ")
+    : "No ingredients listed";
 
-    if (recipe.vegan) dietList.push("vegan");
-    if (recipe.vegetarian) dietList.push("vegetarian");
-    if (recipe.glutenFree) dietList.push("gluten-free");
-    if (recipe.dairyFree) dietList.push("dairy-free");
-
-    if (Array.isArray(recipe.diets)) {
-      recipe.diets.forEach(diet => {
-        const formattedDiet = diet.toLowerCase();
-        if (allowedDiets.includes(formattedDiet) && !dietList.includes(formattedDiet)) {
-          dietList.push(formattedDiet);
-        }
-      });
-    }
-
-    let selectedDiet = dietFilter.value.toLowerCase();
-
-    let finalDiet = "No specific diet";
-
-    if (selectedDiet !== "all" && dietList.includes(selectedDiet)) {
-      finalDiet = capitalize(selectedDiet.replace("-", " "));
-    } else if (selectedDiet === "all") {
-      finalDiet = dietList.length > 0 ? capitalize(dietList.join(", ").replace(/-/g, " ")) : "No specific diet";
-    }
-
-    const cuisine = recipe.cuisines?.length ? capitalize(recipe.cuisines).join(", ") : "Not specified"
-    const time = recipe.readyInMinutes ? `${recipe.readyInMinutes} min` : "Unknown time";
-    const ingredients = recipe.extendedIngredients?.length
-      ? capitalize(recipe.extendedIngredients.map(ing => ing.name)).join(", ")
-      : "No ingredients listed";
-
-    recipeCard.innerHTML = `
+  recipeCard.innerHTML = `
     <a href="${recipe.sourceUrl}" target="_blank" class="recipe-link">
       <img src="${recipe.image}" alt="${recipe.title}">
       <h3>${capitalize(recipe.title)}</h3>
       <hr class="recipe-divider">
       <p><strong>Diet:</strong> ${finalDiet}</p>
       <p><strong>Cuisine:</strong> ${cuisine}</p>
-      <p><strong>Time:</strong> ${recipe.readyInMinutes} min</p>
+      <p><strong>Time:</strong> ${time}</p>
       <hr class="recipe-divider">
       <p><strong>Ingredients:</strong> ${ingredients}</p>
-      </a>
-    `;
+    </a>
+  `;
 
-    container.appendChild(recipeCard);
-  });
+  return recipeCard;
 };
+
+// GET DIET TEXT
+const getDietText = recipe => {
+  const allowedDiets = ["vegan", "vegetarian", "gluten-free", "dairy-free"];
+  const dietList = [];
+
+  if (recipe.vegan) dietList.push("vegan");
+  if (recipe.vegetarian) dietList.push("vegetarian");
+  if (recipe.glutenFree) dietList.push("gluten-free");
+  if (recipe.dairyFree) dietList.push("dairy-free");
+
+  if (Array.isArray(recipe.diets)) {
+    recipe.diets.forEach(diet => {
+      const formattedDiet = diet.toLowerCase();
+      if (allowedDiets.includes(formattedDiet) && !dietList.includes(formattedDiet)) {
+        dietList.push(formattedDiet);
+      }
+    });
+  }
+
+  let selectedDiet = elements.dietFilter.value.toLowerCase();
+  if (selectedDiet !== "all" && dietList.includes(selectedDiet)) {
+    return capitalize(selectedDiet.replace("-", " "));
+  }
+
+  return dietList.length > 0 ? capitalize(dietList.join(", ").replace(/-/g, " ")) : "No specific diet";
+};
+
 
 // FILTER AND SORTING STYLES
-const updateFilterStyle = (filterElement) => {
+const updateFilterStyle = filterElement => {
   filterElement.classList.remove("active-filter", "sort-active");
-  if (filterElement.value !== "none") {
-    if (filterElement === sortFilter) {
-      filterElement.classList.add("sort-active");
-    } else {
-      filterElement.classList.add("active-filter");
-    }
-  }
+
+  if (filterElement.value === "none") return;
+
+  const classToAdd = filterElement === elements.sortFilter ? "sort-active" : "active-filter";
+  filterElement.classList.add(classToAdd);
 };
 
-// UPDATE FILTER TEXT
+
+// UPDATE FILTER/SORTING TEXT
+const getSelectedText = selectElement =>
+  selectElement.options[selectElement.selectedIndex].text;
+
 const updateSelectedFiltersText = () => {
-  let selectedFilters = [];
+  const selectedFilters = [];
 
-  if (dietFilter.value !== "all") selectedFilters.push(capitalize([dietFilter.value])[0]);
-  if (cuisineFilter.value !== "all") selectedFilters.push(capitalize([cuisineFilter.value])[0]);
-  if (timeFilter.value !== "all") selectedFilters.push(capitalize([timeFilter.options[timeFilter.selectedIndex].text])[0]);
+  if (elements.dietFilter.value !== "all")
+    selectedFilters.push(capitalize(elements.dietFilter.value));
 
-  selectedFiltersText.textContent = selectedFilters.length > 0
+  if (elements.cuisineFilter.value !== "all")
+    selectedFilters.push(capitalize(elements.cuisineFilter.value));
+
+  if (elements.timeFilter.value !== "all")
+    selectedFilters.push(capitalize(getSelectedText(elements.timeFilter)));
+
+  elements.selectedFiltersText.textContent = selectedFilters.length
     ? `Selected filters: ${selectedFilters.join(", ")}`
     : "Selected filters: All";
 
-  selectedSorting.textContent = sortFilter.value !== "none"
-    ? `Sorted by: ${capitalize([sortFilter.options[sortFilter.selectedIndex].text])[0]}`
+  elements.selectedSorting.textContent = elements.sortFilter.value !== "none"
+    ? `Sorted by: ${capitalize(getSelectedText(elements.sortFilter))}`
     : "Sorted by: None";
 };
 
+
 // GET RANDOM RECIPE
 const getRandomRecipe = () => {
-  if (apiQuotaExceeded) {
-    selectedFiltersText.textContent = "🚨 No recipes available. API quota exceeded!";
+  if (state.apiQuotaExceeded) {
+    showErrorMessage("🚨 No recipes available. API quota exceeded!");
     return;
   }
 
-  if (recipes.length > 0) {
-    const randomIndex = Math.floor(Math.random() * recipes.length);
-    displayRecipes([recipes[randomIndex]]);
-  } else {
-    selectedFiltersText.textContent = "⚠️ No recipes available. Try again later.";
+  if (!state.recipes.length) {
+    showErrorMessage("⚠️ No recipes available. Try again later.");
+    return;
   }
+
+  displayRecipes([getRandomRecipeFromList()]);
 };
+
+const getRandomRecipeFromList = () => {
+  const randomIndex = Math.floor(Math.random() * state.recipes.length);
+  return state.recipes[randomIndex];
+};
+
+
 
 // CLEAR FILTERS
 const clearFilters = () => {
-  dietFilter.value = "all";
-  cuisineFilter.value = "all";
-  timeFilter.value = "all";
-  sortFilter.value = "none";
-  searchInput.value = "";
-
-  [dietFilter, cuisineFilter, timeFilter, sortFilter].forEach(filter => {
-    filter.classList.remove("active-filter", "sort-active");
-  });
-
-  displayRecipes(recipes);
+  resetFilters();
+  displayRecipes(state.recipes);
   updateSelectedFiltersText();
 };
 
+const resetFilters = () => {
+  elements.dietFilter.value = "all";
+  elements.cuisineFilter.value = "all";
+  elements.timeFilter.value = "all";
+  elements.sortFilter.value = "none";
+  elements.searchInput.value = "";
+
+  [elements.dietFilter, elements.cuisineFilter, elements.timeFilter, elements.sortFilter].forEach(filter => {
+    filter.classList.remove("active-filter", "sort-active");
+  });
+};
+
+
 // SEARCH BAR
 const searchRecipes = () => {
-  const query = searchInput.value.toLowerCase().trim();
+  const query = elements.searchInput.value.toLowerCase().trim();
 
   if (!query) {
-    displayRecipes(recipes);
+    displayRecipes(state.recipes);
     return;
   }
 
-  const filteredRecipes = recipes.filter(recipe =>
+  const filteredRecipes = filterRecipesByQuery(query);
+
+  if (!filteredRecipes.length) {
+    showErrorMessage(`No recipes found for "${query}". Try another search!`);
+    return;
+  }
+
+  displayRecipes(filteredRecipes);
+};
+
+const filterRecipesByQuery = query => {
+  return state.recipes.filter(recipe =>
     recipe.title.toLowerCase().includes(query) ||
     (recipe.extendedIngredients || []).some(ing => ing.name.toLowerCase().includes(query))
   );
-
-  if (filteredRecipes.length === 0) {
-    recipeCountElement.textContent = `Showing recipes: 0`;
-    container.innerHTML = `<p class="no-recipes">No recipes found for "${query}". Try another search!</p>`;
-  } else {
-    displayRecipes(filteredRecipes);
-  }
 };
+
 
 
 // FILTER & SORT FUNCTIONALITY
 const filterAndSortRecipes = () => {
-  let filteredRecipes = [...recipes];
+  let filteredRecipes = state.recipes
+    .filter(filterByDiet)
+    .filter(filterByCuisine)
+    .filter(filterByTime);
 
-  // Diet-filter (Vegan, Vegetarian, Gluten Free, Dairy Free)
-  if (dietFilter.value !== "all") {
-    filteredRecipes = filteredRecipes.filter(recipe => {
-      const selectedDiet = dietFilter.value.replace("-", " ").toLowerCase();
+  filteredRecipes = sortRecipes(filteredRecipes);
 
-      return (
-        (selectedDiet === "vegan" && recipe.vegan) ||
-        (selectedDiet === "vegetarian" && recipe.vegetarian) ||
-        (selectedDiet === "gluten free" && recipe.glutenFree) ||
-        (selectedDiet === "dairy free" && recipe.dairyFree) ||
-        (Array.isArray(recipe.diets) && recipe.diets.some(diet => diet.toLowerCase() === selectedDiet))
-      );
-    });
-  }
+  displayRecipes(filteredRecipes);
+};
 
-  if (cuisineFilter.value !== "all") {
-    filteredRecipes = filteredRecipes.filter(recipe => {
-      return Array.isArray(recipe.cuisines) && recipe.cuisines.some(cuisine =>
-        cuisine.toLowerCase() === cuisineFilter.value.toLowerCase()
-      );
-    });
-  }
+// Filter by diet
+const filterByDiet = recipe => {
+  if (elements.dietFilter.value === "all") return true;
+  const selectedDiet = elements.dietFilter.value.replace("-", " ").toLowerCase();
 
+  return (
+    (selectedDiet === "vegan" && recipe.vegan) ||
+    (selectedDiet === "vegetarian" && recipe.vegetarian) ||
+    (selectedDiet === "gluten free" && recipe.glutenFree) ||
+    (selectedDiet === "dairy free" && recipe.dairyFree) ||
+    (Array.isArray(recipe.diets) && recipe.diets.some(diet => diet.toLowerCase() === selectedDiet))
+  );
+};
+
+// Filter by cuisine
+const filterByCuisine = recipe => {
+  if (elements.cuisineFilter.value === "all") return true;
+  return Array.isArray(recipe.cuisines) && recipe.cuisines.some(cuisine =>
+    cuisine.toLowerCase() === elements.cuisineFilter.value.toLowerCase()
+  );
+};
+
+// Filter by time
+const filterByTime = recipe => {
+  if (elements.timeFilter.value === "all") return true;
   const timeRanges = {
-    "under-15": (time) => time < 15,
-    "15-30": (time) => time >= 15 && time <= 30,
-    "30-60": (time) => time > 30 && time <= 60,
-    "over-60": (time) => time > 60,
+    "under-15": time => time < 15,
+    "15-30": time => time >= 15 && time <= 30,
+    "30-60": time => time > 30 && time <= 60,
+    "over-60": time => time > 60,
   };
+  return timeRanges[elements.timeFilter.value](recipe.readyInMinutes || 0);
+};
 
-  if (timeFilter.value !== "all" && timeRanges[timeFilter.value]) {
-    filteredRecipes = filteredRecipes.filter(recipe =>
-      timeRanges[timeFilter.value](recipe.readyInMinutes || 0)
-    );
-  }
-
+//Sort recipes
+const sortRecipes = recipes => {
   const sortingMethods = {
     "time-asc": (a, b) => (a.readyInMinutes || 0) - (b.readyInMinutes || 0),
     "time-desc": (a, b) => (b.readyInMinutes || 0) - (a.readyInMinutes || 0),
     "popularity-desc": (a, b) => (b.aggregateLikes || 0) - (a.aggregateLikes || 0),
   };
 
-  if (sortFilter.value in sortingMethods) {
-    filteredRecipes.sort(sortingMethods[sortFilter.value]);
-  }
-
-  displayRecipes(filteredRecipes);
+  return elements.sortFilter.value in sortingMethods
+    ? recipes.sort(sortingMethods[elements.sortFilter.value])
+    : recipes;
 };
 
+// EVENT LISTENERS
+const initializeEventListeners = () => {
+  elements.clearBtn.addEventListener("click", clearFilters);
+  elements.randomBtn.addEventListener("click", getRandomRecipe);
+  elements.searchInput.addEventListener("input", searchRecipes);
 
-// EVENT LISTENERS BUTTON AND SEARCH
-clearBtn.addEventListener("click", clearFilters);
-randomBtn.addEventListener("click", getRandomRecipe);
-searchInput.addEventListener("input", searchRecipes);
-
-// FILTER EVENT LISTENERS
-[dietFilter, cuisineFilter, timeFilter, sortFilter].forEach(filter => {
-  filter.addEventListener("change", () => {
-    filterAndSortRecipes();
-    updateSelectedFiltersText();
-    updateFilterStyle(filter);
+  [elements.dietFilter, elements.cuisineFilter, elements.timeFilter, elements.sortFilter].forEach(filter => {
+    filter.addEventListener("change", () => {
+      filterAndSortRecipes();
+      updateSelectedFiltersText();
+      updateFilterStyle(filter);
+    });
   });
-});
+};
 
 // INITIALIZE PAGE
-document.addEventListener("DOMContentLoaded", loadSavedRecipes);
-
+document.addEventListener("DOMContentLoaded", () => {
+  loadSavedRecipes();
+  initializeEventListeners();
+});
