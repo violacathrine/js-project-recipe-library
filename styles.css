@@ -216,6 +216,17 @@ select.sort-active {
     border-bottom: none;
 }
 
+.recipe-card a {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.recipe-card a:hover {
+    opacity: 0.9;
+    /* Gör kortet lite mörkare vid hovring */
+}
+
 /* MEDIA QUERYS */
 @media (min-width: 1024px) {
     .filters {

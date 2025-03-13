@@ -17,9 +17,39 @@ const searchInput = document.getElementById("search-input");
 let recipes = [];
 let apiQuotaExceeded = false;
 
+// LOCAL STORAGE LOAD SAVED RECIPES
+const loadSavedRecipes = () => {
+  const savedData = localStorage.getItem("recipesData");
+
+  if (savedData) {
+    const { recipes: savedRecipes, savedDate } = JSON.parse(savedData);
+    const today = new Date().toISOString().split("T")[0];
+
+    if (savedDate === today) {
+      console.log("✅ Loading recipes from Local Storage.");
+      recipes = savedRecipes;
+      displayRecipes(recipes);
+      return; // Viktigt att returnera här för att stoppa vidare körning
+    } else {
+      console.log("📅 Saved recipes are from a different day. Fetching new recipes.");
+    }
+  } else {
+    console.log("💾 No saved recipes found. Fetching new recipes.");
+  }
+
+  console.log("🌐 Fetching new recipes from API...");
+  fetchRecipes(); // Hämta nya recept om det inte finns giltiga sparade recept
+};
+
+
 // FUNCTION TO CAPITALIZE FIRST LETTER OF EACH WORD IN A STRING
-const capitalizeArray = (array) => {
-  return array.map(item => item.charAt(0).toUpperCase() + item.slice(1));
+const capitalize = (input) => {
+  if (Array.isArray(input)) {
+    return input.map(item => item.charAt(0).toUpperCase() + item.slice(1));
+  } else if (typeof input === "string") {
+    return input.charAt(0).toUpperCase() + input.slice(1);
+  }
+  return input; // Return unchanged if not string or array
 };
 
 // LOADING INDICATOR
@@ -40,7 +70,7 @@ const fetchRecipes = async () => {
   apiQuotaExceeded = false;
 
   try {
-    const apiKey = "29753ab3087c46f9ab04a6285b8c1ea0";
+    const apiKey = "b362b9edeed54639b64b0e6176d9ab9e"; // Ersätt med din riktiga API-nyckel
     const response = await fetch(`https://api.spoonacular.com/recipes/random?number=100&apiKey=${apiKey}`);
 
     if (!response.ok) {
@@ -48,33 +78,25 @@ const fetchRecipes = async () => {
     }
 
     const data = await response.json();
-    const selectedCuisines = ["italian", "mediterranean", "middle eastern", "american", "asian"];
-    recipes = data.recipes.filter(recipe =>
-      recipe.cuisines.some(cuisine => selectedCuisines.includes(cuisine.toLowerCase()))
-    );
+    recipes = data.recipes;
 
-    // Capitalize 
-    recipes.forEach(recipe => {
-      if (recipe.cuisines) {
-        recipe.cuisines = capitalizeArray(recipe.cuisines);
-      }
-    });
+    // 🟢 Spara recepten i Local Storage med dagens datum
+    const today = new Date().toISOString().split("T")[0]; // "YYYY-MM-DD"
+    localStorage.setItem("recipesData", JSON.stringify({ recipes, savedDate: today }));
+
+    console.log("✅ New recipes saved in Local Storage.");
+    displayRecipes(recipes);
 
   } catch (error) {
     console.error("Error fetching recipes:", error);
-
-    if (error.message.includes("API quota exhausted") || error.message.includes("402")) {
-      showErrorMessage("🚨 API quota exhausted! Please try again later.");
-    } else {
-      showErrorMessage("⚠️ Failed to load recipes. Please try again later.");
-    }
-
+    showErrorMessage("⚠️ Failed to load recipes. Please try again later.");
     recipes = [];
+
   } finally {
     toggleLoading(false);
-    displayRecipes(recipes);
   }
 };
+
 
 // DISPLAY RECIPES
 const displayRecipes = (recipeList = []) => {
@@ -82,17 +104,13 @@ const displayRecipes = (recipeList = []) => {
     console.error("Error: recipeList is not an array!", recipeList);
     return;
   }
-
   container.innerHTML = "";
   recipeCountElement.textContent = `Showing recipes: ${recipeList.length}`;
-
   if (apiQuotaExceeded) return;
-
   if (recipeList.length === 0) {
     container.innerHTML = `<p class="no-recipes">Sorry, no recipes found. Try adjusting your selections!</p>`;
     return;
   }
-
   recipeList.forEach(recipe => {
     if (!recipe.image) return;
 
@@ -104,44 +122,61 @@ const displayRecipes = (recipeList = []) => {
         recipe.glutenFree ? "Gluten Free" :
           recipe.dairyFree ? "Dairy Free" : "No specific diet";
 
-
-    const cuisine = recipe.cuisines?.length ? capitalizeArray(recipe.cuisines).join(", ") : "Not specified";
-
+    // 🔵 Kapitalisera bara vid visning
+    const cuisine = recipe.cuisines?.length ? capitalize(recipe.cuisines).join(", ") : "Not specified";
     const ingredients = recipe.extendedIngredients?.length
-      ? `<ul>${capitalizeArray(recipe.extendedIngredients.map(ing => ing.name)).map(ing => `<li>${ing}</li>`).join("")}</ul>`
-      : "<p>No ingredients listed</p>";
+      ? capitalize(recipe.extendedIngredients.map(ing => ing.name)).join(", ")
+      : "No ingredients listed";
 
     recipeCard.innerHTML = `
+    <a href="${recipe.sourceUrl}" target="_blank" class="recipe-link">
       <img src="${recipe.image}" alt="${recipe.title}">
-      <h3>${recipe.title}</h3>
+      <h3>${capitalize(recipe.title)}</h3>
+      <hr class="recipe-divider">
       <p><strong>Diet:</strong> ${diet}</p>
       <p><strong>Cuisine:</strong> ${cuisine}</p>
       <p><strong>Time:</strong> ${recipe.readyInMinutes} min</p>
+      <hr class="recipe-divider">
       <p><strong>Ingredients:</strong> ${ingredients}</p>
+      </a>
     `;
 
     container.appendChild(recipeCard);
   });
 };
 
+// FILTER AND SORTING STYLES
+const updateFilterStyle = (filterElement) => {
+  // Tar först bort den aktiva färgen från alla filter innan vi lägger till den igen
+  filterElement.classList.remove("active-filter", "sort-active");
+  // Om ett filter väljs (inklusive "All"), lägg till den aktiva färgen
+  if (filterElement.value !== "none") {
+    if (filterElement === sortFilter) {
+      filterElement.classList.add("sort-active"); // Rosa färg för sortering
+    } else {
+      filterElement.classList.add("active-filter"); // Blå färg för filter (inkl. "All")
+    }
+  }
+};
+
 // UPDATE FILTER TEXT
 const updateSelectedFiltersText = () => {
   let selectedFilters = [];
 
-  if (dietFilter.value !== "all") selectedFilters.push(capitalizeArray([dietFilter.value])[0]);
-  if (cuisineFilter.value !== "all") selectedFilters.push(capitalizeArray([cuisineFilter.value])[0]);
-  if (timeFilter.value !== "all") selectedFilters.push(capitalizeArray([timeFilter.options[timeFilter.selectedIndex].text])[0]);
+  if (dietFilter.value !== "all") selectedFilters.push(capitalize([dietFilter.value])[0]);
+  if (cuisineFilter.value !== "all") selectedFilters.push(capitalize([cuisineFilter.value])[0]);
+  if (timeFilter.value !== "all") selectedFilters.push(capitalize([timeFilter.options[timeFilter.selectedIndex].text])[0]);
 
   selectedFiltersText.textContent = selectedFilters.length > 0
     ? `Selected filters: ${selectedFilters.join(", ")}`
     : "Selected filters: All";
 
   selectedSorting.textContent = sortFilter.value !== "none"
-    ? `Sorted by: ${capitalizeArray([sortFilter.options[sortFilter.selectedIndex].text])[0]}`
+    ? `Sorted by: ${capitalize([sortFilter.options[sortFilter.selectedIndex].text])[0]}`
     : "Sorted by: None";
 };
 
-
+// GET RANDOM RECIPE
 const getRandomRecipe = () => {
   if (apiQuotaExceeded) {
     selectedFiltersText.textContent = "🚨 No recipes available. API quota exceeded!";
@@ -164,6 +199,10 @@ const clearFilters = () => {
   sortFilter.value = "none";
   searchInput.value = "";
 
+  [dietFilter, cuisineFilter, timeFilter, sortFilter].forEach(filter => {
+    filter.classList.remove("active-filter", "sort-active");
+  });
+
   displayRecipes(recipes);
   updateSelectedFiltersText();
 };
@@ -183,6 +222,7 @@ const searchRecipes = () => {
   );
 
   if (filteredRecipes.length === 0) {
+    recipeCountElement.textContent = `Showing recipes: 0`;
     container.innerHTML = `<p class="no-recipes">No recipes found for "${query}". Try another search!</p>`;
   } else {
     displayRecipes(filteredRecipes);
@@ -194,19 +234,44 @@ const searchRecipes = () => {
 const filterAndSortRecipes = () => {
   let filteredRecipes = [...recipes];
 
+  // ✅ Diet-filter (hanterar boolean-värden korrekt)
   if (dietFilter.value !== "all") {
-    filteredRecipes = filteredRecipes.filter(recipe => recipe[dietFilter.value]);
+    filteredRecipes = filteredRecipes.filter(recipe => {
+      if (dietFilter.value === "vegetarian") return recipe.vegetarian === true;
+      if (dietFilter.value === "vegan") return recipe.vegan === true;
+      if (dietFilter.value === "gluten-free") return recipe.glutenFree === true;
+      if (dietFilter.value === "dairy-free") return recipe.dairyFree === true;
+      return false;
+    });
   }
 
+  // ✅ Cuisine-filter (hanterar listor korrekt)
   if (cuisineFilter.value !== "all") {
+    filteredRecipes = filteredRecipes.filter(recipe => {
+      return recipe.cuisines.some(cuisine =>
+        cuisine.toLowerCase() === cuisineFilter.value.toLowerCase()
+      );
+    });
+  }
+
+  // ✅ Time-filter (hanterar siffror korrekt)
+  const timeRanges = {
+    "under-15": (time) => time < 15,
+    "15-30": (time) => time >= 15 && time <= 30,
+    "30-60": (time) => time > 30 && time <= 60,
+    "over-60": (time) => time > 60,
+  };
+
+  if (timeFilter.value !== "all") {
     filteredRecipes = filteredRecipes.filter(recipe =>
-      recipe.cuisines.includes(cuisineFilter.value)
+      timeRanges[timeFilter.value](recipe.readyInMinutes)
     );
   }
 
+  // ✅ Sorting
   const sortingMethods = {
     "time-asc": (a, b) => a.readyInMinutes - b.readyInMinutes,
-    "popularity-desc": (a, b) => b.aggregateLikes - a.aggregateLikes
+    "popularity-desc": (a, b) => (b.aggregateLikes || 0) - (a.aggregateLikes || 0),
   };
 
   if (sortFilter.value in sortingMethods) {
@@ -215,6 +280,7 @@ const filterAndSortRecipes = () => {
 
   displayRecipes(filteredRecipes);
 };
+
 
 // EVENT LISTENERS BUTTON AND SEARCH
 clearBtn.addEventListener("click", clearFilters);
@@ -226,8 +292,10 @@ searchInput.addEventListener("input", searchRecipes);
   filter.addEventListener("change", () => {
     filterAndSortRecipes();
     updateSelectedFiltersText();
+    updateFilterStyle(filter);
   });
 });
 
 // INITIALIZE PAGE
-document.addEventListener("DOMContentLoaded", fetchRecipes);
+document.addEventListener("DOMContentLoaded", loadSavedRecipes);
+
