@@ -97,33 +97,65 @@ const fetchRecipes = async () => {
   }
 };
 
-
 // DISPLAY RECIPES
 const displayRecipes = (recipeList = []) => {
   if (!Array.isArray(recipeList)) {
     console.error("Error: recipeList is not an array!", recipeList);
     return;
   }
+
   container.innerHTML = "";
   recipeCountElement.textContent = `Showing recipes: ${recipeList.length}`;
   if (apiQuotaExceeded) return;
+
   if (recipeList.length === 0) {
     container.innerHTML = `<p class="no-recipes">Sorry, no recipes found. Try adjusting your selections!</p>`;
     return;
   }
+
   recipeList.forEach(recipe => {
     if (!recipe.image) return;
 
     const recipeCard = document.createElement("div");
     recipeCard.classList.add("recipe-card");
 
-    const diet = recipe.vegetarian ? "Vegetarian" :
-      recipe.vegan ? "Vegan" :
-        recipe.glutenFree ? "Gluten Free" :
-          recipe.dairyFree ? "Dairy Free" : "No specific diet";
+    // 🔵 Endast dessa dieter ska matcha dropdown-menyn
+    const allowedDiets = ["vegan", "vegetarian", "gluten-free", "dairy-free"];
+    const dietList = [];
 
-    // 🔵 Kapitalisera bara vid visning
-    const cuisine = recipe.cuisines?.length ? capitalize(recipe.cuisines).join(", ") : "Not specified";
+    // ✅ Lägg endast till dieter som matchar dropdown-menyn
+    if (recipe.vegan) dietList.push("vegan");
+    if (recipe.vegetarian) dietList.push("vegetarian");
+    if (recipe.glutenFree) dietList.push("gluten-free");
+    if (recipe.dairyFree) dietList.push("dairy-free");
+
+    // 🔵 Om receptet har en diets-array, inkludera endast de som matchar dropdownen
+    if (Array.isArray(recipe.diets)) {
+      recipe.diets.forEach(diet => {
+        const formattedDiet = diet.toLowerCase(); // Matchar dropdownen exakt
+        if (allowedDiets.includes(formattedDiet) && !dietList.includes(formattedDiet)) {
+          dietList.push(formattedDiet);
+        }
+      });
+    }
+
+    // 🔵 Bestäm vilken diet som ska visas
+    let selectedDiet = dietFilter.value.toLowerCase(); // T.ex. "vegan"
+
+    let finalDiet = "No specific diet";
+
+    if (selectedDiet !== "all" && dietList.includes(selectedDiet)) {
+      finalDiet = capitalize(selectedDiet.replace("-", " ")); // Visa endast den valda dieten
+    } else if (selectedDiet === "all") {
+      finalDiet = dietList.length > 0 ? capitalize(dietList.join(", ").replace(/-/g, " ")) : "No specific diet";
+    }
+
+    // 🔵 Kapitalisera cuisine vid visning
+    const cuisine = recipe.cuisines?.length ? capitalize(recipe.cuisines).join(", ") : "Not specified"
+
+    const time = recipe.readyInMinutes ? `${recipe.readyInMinutes} min` : "Unknown time";
+
+
     const ingredients = recipe.extendedIngredients?.length
       ? capitalize(recipe.extendedIngredients.map(ing => ing.name)).join(", ")
       : "No ingredients listed";
@@ -133,7 +165,7 @@ const displayRecipes = (recipeList = []) => {
       <img src="${recipe.image}" alt="${recipe.title}">
       <h3>${capitalize(recipe.title)}</h3>
       <hr class="recipe-divider">
-      <p><strong>Diet:</strong> ${diet}</p>
+      <p><strong>Diet:</strong> ${finalDiet}</p>
       <p><strong>Cuisine:</strong> ${cuisine}</p>
       <p><strong>Time:</strong> ${recipe.readyInMinutes} min</p>
       <hr class="recipe-divider">
@@ -234,27 +266,30 @@ const searchRecipes = () => {
 const filterAndSortRecipes = () => {
   let filteredRecipes = [...recipes];
 
-  // ✅ Diet-filter (hanterar boolean-värden korrekt)
+  // ✅ Diet-filter (Vegan, Vegetarian, Gluten Free, Dairy Free)
   if (dietFilter.value !== "all") {
     filteredRecipes = filteredRecipes.filter(recipe => {
-      if (dietFilter.value === "vegetarian") return recipe.vegetarian === true;
-      if (dietFilter.value === "vegan") return recipe.vegan === true;
-      if (dietFilter.value === "gluten-free") return recipe.glutenFree === true;
-      if (dietFilter.value === "dairy-free") return recipe.dairyFree === true;
-      return false;
+      const selectedDiet = dietFilter.value.replace("-", " ").toLowerCase(); // "gluten-free" -> "gluten free"
+
+      return (
+        (selectedDiet === "vegan" && recipe.vegan) ||
+        (selectedDiet === "vegetarian" && recipe.vegetarian) ||
+        (selectedDiet === "gluten free" && recipe.glutenFree) ||
+        (selectedDiet === "dairy free" && recipe.dairyFree) ||
+        (Array.isArray(recipe.diets) && recipe.diets.some(diet => diet.toLowerCase() === selectedDiet))
+      );
     });
   }
 
-  // ✅ Cuisine-filter (hanterar listor korrekt)
+  // ✅ Cuisine-filter (matchar exakt med API-data)
   if (cuisineFilter.value !== "all") {
     filteredRecipes = filteredRecipes.filter(recipe => {
-      return recipe.cuisines.some(cuisine =>
+      return Array.isArray(recipe.cuisines) && recipe.cuisines.some(cuisine =>
         cuisine.toLowerCase() === cuisineFilter.value.toLowerCase()
       );
     });
   }
 
-  // ✅ Time-filter (hanterar siffror korrekt)
   const timeRanges = {
     "under-15": (time) => time < 15,
     "15-30": (time) => time >= 15 && time <= 30,
@@ -262,15 +297,15 @@ const filterAndSortRecipes = () => {
     "over-60": (time) => time > 60,
   };
 
-  if (timeFilter.value !== "all") {
+  if (timeFilter.value !== "all" && timeRanges[timeFilter.value]) {
     filteredRecipes = filteredRecipes.filter(recipe =>
-      timeRanges[timeFilter.value](recipe.readyInMinutes)
+      timeRanges[timeFilter.value](recipe.readyInMinutes || 0) // 🟢 Lägg till fallback till 0 om värdet saknas
     );
   }
 
-  // ✅ Sorting
   const sortingMethods = {
-    "time-asc": (a, b) => a.readyInMinutes - b.readyInMinutes,
+    "time-asc": (a, b) => (a.readyInMinutes || 0) - (b.readyInMinutes || 0),
+    "time-desc": (a, b) => (b.readyInMinutes || 0) - (a.readyInMinutes || 0),
     "popularity-desc": (a, b) => (b.aggregateLikes || 0) - (a.aggregateLikes || 0),
   };
 
