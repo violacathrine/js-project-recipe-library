@@ -26,10 +26,10 @@ const loadSavedRecipes = () => {
     const today = new Date().toISOString().split("T")[0];
 
     if (savedDate === today) {
-      console.log("✅ Loading recipes from Local Storage.");
+      console.log("Loading recipes from Local Storage.");
       recipes = savedRecipes;
       displayRecipes(recipes);
-      return; // Viktigt att returnera här för att stoppa vidare körning
+      return;
     } else {
       console.log("📅 Saved recipes are from a different day. Fetching new recipes.");
     }
@@ -70,21 +70,19 @@ const fetchRecipes = async () => {
   apiQuotaExceeded = false;
 
   try {
-    const apiKey = "b362b9edeed54639b64b0e6176d9ab9e"; // Ersätt med din riktiga API-nyckel
+    const apiKey = "b362b9edeed54639b64b0e6176d9ab9e";
     const response = await fetch(`https://api.spoonacular.com/recipes/random?number=100&apiKey=${apiKey}`);
 
     if (!response.ok) {
       throw new Error(`Error! Status: ${response.status}`);
     }
-
     const data = await response.json();
     recipes = data.recipes;
 
-    // 🟢 Spara recepten i Local Storage med dagens datum
     const today = new Date().toISOString().split("T")[0]; // "YYYY-MM-DD"
     localStorage.setItem("recipesData", JSON.stringify({ recipes, savedDate: today }));
 
-    console.log("✅ New recipes saved in Local Storage.");
+    console.log("New recipes saved in Local Storage.");
     displayRecipes(recipes);
 
   } catch (error) {
@@ -119,43 +117,35 @@ const displayRecipes = (recipeList = []) => {
     const recipeCard = document.createElement("div");
     recipeCard.classList.add("recipe-card");
 
-    // 🔵 Endast dessa dieter ska matcha dropdown-menyn
     const allowedDiets = ["vegan", "vegetarian", "gluten-free", "dairy-free"];
     const dietList = [];
 
-    // ✅ Lägg endast till dieter som matchar dropdown-menyn
     if (recipe.vegan) dietList.push("vegan");
     if (recipe.vegetarian) dietList.push("vegetarian");
     if (recipe.glutenFree) dietList.push("gluten-free");
     if (recipe.dairyFree) dietList.push("dairy-free");
 
-    // 🔵 Om receptet har en diets-array, inkludera endast de som matchar dropdownen
     if (Array.isArray(recipe.diets)) {
       recipe.diets.forEach(diet => {
-        const formattedDiet = diet.toLowerCase(); // Matchar dropdownen exakt
+        const formattedDiet = diet.toLowerCase();
         if (allowedDiets.includes(formattedDiet) && !dietList.includes(formattedDiet)) {
           dietList.push(formattedDiet);
         }
       });
     }
 
-    // 🔵 Bestäm vilken diet som ska visas
-    let selectedDiet = dietFilter.value.toLowerCase(); // T.ex. "vegan"
+    let selectedDiet = dietFilter.value.toLowerCase();
 
     let finalDiet = "No specific diet";
 
     if (selectedDiet !== "all" && dietList.includes(selectedDiet)) {
-      finalDiet = capitalize(selectedDiet.replace("-", " ")); // Visa endast den valda dieten
+      finalDiet = capitalize(selectedDiet.replace("-", " "));
     } else if (selectedDiet === "all") {
       finalDiet = dietList.length > 0 ? capitalize(dietList.join(", ").replace(/-/g, " ")) : "No specific diet";
     }
 
-    // 🔵 Kapitalisera cuisine vid visning
     const cuisine = recipe.cuisines?.length ? capitalize(recipe.cuisines).join(", ") : "Not specified"
-
     const time = recipe.readyInMinutes ? `${recipe.readyInMinutes} min` : "Unknown time";
-
-
     const ingredients = recipe.extendedIngredients?.length
       ? capitalize(recipe.extendedIngredients.map(ing => ing.name)).join(", ")
       : "No ingredients listed";
@@ -179,14 +169,12 @@ const displayRecipes = (recipeList = []) => {
 
 // FILTER AND SORTING STYLES
 const updateFilterStyle = (filterElement) => {
-  // Tar först bort den aktiva färgen från alla filter innan vi lägger till den igen
   filterElement.classList.remove("active-filter", "sort-active");
-  // Om ett filter väljs (inklusive "All"), lägg till den aktiva färgen
   if (filterElement.value !== "none") {
     if (filterElement === sortFilter) {
-      filterElement.classList.add("sort-active"); // Rosa färg för sortering
+      filterElement.classList.add("sort-active");
     } else {
-      filterElement.classList.add("active-filter"); // Blå färg för filter (inkl. "All")
+      filterElement.classList.add("active-filter");
     }
   }
 };
@@ -266,10 +254,10 @@ const searchRecipes = () => {
 const filterAndSortRecipes = () => {
   let filteredRecipes = [...recipes];
 
-  // ✅ Diet-filter (Vegan, Vegetarian, Gluten Free, Dairy Free)
+  // Diet-filter (Vegan, Vegetarian, Gluten Free, Dairy Free)
   if (dietFilter.value !== "all") {
     filteredRecipes = filteredRecipes.filter(recipe => {
-      const selectedDiet = dietFilter.value.replace("-", " ").toLowerCase(); // "gluten-free" -> "gluten free"
+      const selectedDiet = dietFilter.value.replace("-", " ").toLowerCase();
 
       return (
         (selectedDiet === "vegan" && recipe.vegan) ||
@@ -281,7 +269,6 @@ const filterAndSortRecipes = () => {
     });
   }
 
-  // ✅ Cuisine-filter (matchar exakt med API-data)
   if (cuisineFilter.value !== "all") {
     filteredRecipes = filteredRecipes.filter(recipe => {
       return Array.isArray(recipe.cuisines) && recipe.cuisines.some(cuisine =>
@@ -299,7 +286,7 @@ const filterAndSortRecipes = () => {
 
   if (timeFilter.value !== "all" && timeRanges[timeFilter.value]) {
     filteredRecipes = filteredRecipes.filter(recipe =>
-      timeRanges[timeFilter.value](recipe.readyInMinutes || 0) // 🟢 Lägg till fallback till 0 om värdet saknas
+      timeRanges[timeFilter.value](recipe.readyInMinutes || 0)
     );
   }
 

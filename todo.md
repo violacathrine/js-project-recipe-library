@@ -15,7 +15,7 @@ My todo-list for this project:
 
 Requirements for week 7: 
 [x] Get real recipes from Spoonacular API 
-[/] Show recipe cards based on API data 
+[x] Show recipe cards based on API data 
 - They are showing but need to be styled
 [x] Customize filtering/sorting to API 
 [x] Show an error message if the API quota is exhausted
@@ -24,7 +24,7 @@ Stretchgoals:
 [x] Make your filters and sorting options work together so that the user, for example, can filter on vegetarian & popular recipes or Italian vegan recipes
 [x] Show a loading state while fetching data
 [x] Allow users to search for specific recipe names or ingredients
-[] Implement local storage caching to reduce API requests
+[x] Implement local storage caching to reduce API requests
 [] Allow users to save/like recipes and store them in local storage. 
 - This includes adding a heart button to the recipe card and 
 - adding a "View favourites" button that only shows favourite recipes.
