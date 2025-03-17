@@ -24,8 +24,8 @@ header {
 
 .filters select {
     width: 90%;
-    padding: 10px;
-    font-size: 16px;
+    padding: 18px;
+    font-size: 20px;
     border-radius: 10px;
     background-color: #ccffe2;
     color: #0018a4;
@@ -89,8 +89,8 @@ select.sort-active {
 #randomBtn,
 #clearBtn {
     width: 160px;
-    padding: 10px;
-    font-size: 18px;
+    padding: 15px;
+    font-size: 20px;
     border-radius: 10px;
     background-color: #ff6589;
     color: #ffffff;
@@ -117,6 +117,18 @@ select.sort-active {
     padding: 8px;
 }
 
+/* ERROR MESSAGE*/
+.error-message {
+    color: rgb(255, 255, 255);
+    background: #ff6589;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px;
+}
+
+/* SEARCH BAR */
+
 .search-container {
     display: flex;
     justify-content: center;
@@ -124,7 +136,7 @@ select.sort-active {
     align-items: center;
     width: 80%;
     margin: 10px auto;
-    padding: 10px;
+    padding: 15px;
     gap: 10px;
 }
 
@@ -133,7 +145,7 @@ select.sort-active {
     border: 2px solid #0018a4 !important;
     margin: 10px;
     font-size: 16px;
-    padding: 10px;
+    padding: 15px;
     border-radius: 10px;
 }
 
@@ -147,16 +159,6 @@ select.sort-active {
     flex-wrap: wrap;
     justify-content: center;
     gap: 20px;
-}
-
-/* ERROR MESSAGE*/
-.error-message {
-    color: rgb(255, 255, 255);
-    background: #ff6589;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: bold;
-    padding: 10px;
 }
 
 .recipe-card {
@@ -191,6 +193,7 @@ select.sort-active {
 }
 
 .recipe-card p {
+    font-family: verdana;
     font-size: 16px;
     color: #000000;
     margin: 5px 0px 5px 0px;
@@ -224,13 +227,11 @@ select.sort-active {
 
 .recipe-card a:hover {
     opacity: 0.9;
-    /* Gör kortet lite mörkare vid hovring */
 }
 
 /* MEDIA QUERYS */
 @media (min-width: 1024px) {
     .filters {
-        background-color: none;
         border-radius: none;
         display: flex;
         flex-direction: row;
@@ -260,9 +261,14 @@ select.sort-active {
         margin-top: 50px;
     }
 
+    /* BUTTONS */
+    #randomBtn,
+    #clearBtn {
+        padding: 10px;
+    }
+
     /* RECIPE CARD */
     #recipe-container {
         width: 100%;
-
     }
 }

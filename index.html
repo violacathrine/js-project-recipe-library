@@ -19,7 +19,6 @@
 
             <select id="diet-filter">
                 <option value="all">Diets</option>
-                <option value="all">All diets</option>
                 <option value="vegan">Vegan</option>
                 <option value="vegetarian">Vegetarian</option>
                 <option value="gluten-free">Gluten-free</option>
@@ -28,7 +27,6 @@
 
             <select id="cuisine-filter">
                 <option value="all">Cuisines</option>
-                <option value="all">All cuisines</option>
                 <option value="mediterranean">Mediterranean</option>
                 <option value="middle-eastern">Middle Eastern</option>
                 <option value="asian">Asian</option>
@@ -38,7 +36,6 @@
 
             <select id="time-filter">
                 <option value="all">Cooking time</option>
-                <option value="all">All times</option>
                 <option value="under-15">Under 15 min</option>
                 <option value="15-30">15-30 min</option>
                 <option value="30-60">30-60 min</option>
@@ -59,8 +56,8 @@
         <p id="selected-sorting">Sorted by: None</p>
 
         <div id="search-container" class="search-container">
+            <input type="text" id="search-input" placeholder="Search recipes..." autocomplete="off" />
             <p id="recipe-count"></p>
-            <input type="text" id="search-input" placeholder="Search recipes..." />
         </div>
 
         <section id="recipe-container">
