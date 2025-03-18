@@ -1,4 +1,4 @@
-#  Hand in: Sunday, 23rd of March, 23:59  
+# Hand in: Sunday, 23rd of March, 23:59  
 # My todo-list for this project  
 
 Completed  
@@ -10,8 +10,6 @@ Completed
 [x] Add a function that shows what you have selected  
 [x] Put in how many recipes are showing  
 [x] Filters and sorting work together (e.g., filter on vegetarian & popular recipes)  
-[x] Allow users to search for specific recipe names or ingredients  
-
 
 # Requirements for week 7  
 
@@ -24,10 +22,8 @@ Completed
 [x] Implement local storage caching to reduce API requests  
 
 ---
-
-# Stretch Goals  
-[x] Implement pagination or infinite scrolling** (e.g., fetching more recipes when the user reaches the bottom)  
-[x] Allow users to save/like recipes and store them in local storage**  
-   - 🔲 Add a heart button to recipe cards  
-   - 🔲 Add a "View Favourites" button to show only favourite recipes  
+// LEFT TO DO
+[] Implement pagination or infinite scrolling** (e.g., fetching more recipes when the user reaches the bottom)  
+[] Allow users to save/like recipes and store them in local storage** (DOES IT WORK????)
+[] Allow users to search for specific recipe names or ingredients  
 
