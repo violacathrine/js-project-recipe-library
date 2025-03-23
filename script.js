@@ -25,6 +25,7 @@ const elements = {
 // GLOBAL STATE
 const state = {
   recipes: [],
+  filteredRecipes: [],
   apiQuotaExceeded: false,
   itemsPerPage: 10,
   currentPage: 1
@@ -63,14 +64,30 @@ const toggleLoading = (show, message = "Loading...") => {
   }
 };
 
-// Errormessage 
-const showErrorMessage = (message =
-  "An unknown error occurred Please reload page and try again.") => {
+// Error message 
+const showErrorMessage = (message = "Something went wrong. Please try again.") => {
   toggleLoading(false);
-  elements.errorContainer.innerHTML =
-    `<p class="error-message">${message}</p>`;
+
+  elements.errorContainer.innerHTML = `
+    <div class="error-box">
+      <p>${message}</p>
+    </div>
+  `;
+
   state.apiQuotaExceeded = true;
 };
+
+const handleApiError = (error) => {
+  console.error("API error:", error);
+
+  const message = error.message === "Failed to fetch"
+    ? "Could not connect to the recipe server. Please check your internet or try again later."
+    : error.message;
+
+  showErrorMessage(message);
+};
+
+
 
 // SAVE TO LOCALSTORAGE
 const saveRecipesToLocalStorage = (recipes) => {
@@ -85,13 +102,15 @@ const getRecipesFromAPI = async () => {
   );
 
   if (response.status === 402) {
-    throw new Error("API quota exceeded!");
-  } else if (response.status === 500) {
-    throw new Error("Server error");
+    throw new Error("API quota exceeded. Please try again tomorrow.");
   } else if (response.status === 404) {
-    throw new Error("Not found");
+    throw new Error("No recipes found. Try a different search.");
+  } else if (response.status === 429) {
+    throw new Error("Too many requests. Please slow down and try again soon.");
+  } else if (response.status >= 500 && response.status <= 504) {
+    throw new Error("Server error. Please try again later.");
   } else if (!response.ok) {
-    throw new Error(`Unexpected error: ${response.status}`);
+    throw new Error("Something went wrong. Please try again.");
   }
 
   const data = await response.json();
@@ -103,9 +122,6 @@ const getRecipesFromAPI = async () => {
 const fetchRecipes = async () => {
   toggleLoading(true, "Please wait, loading fresh new recipes!");
   state.apiQuotaExceeded = false;
-
-  // Test delay for recipes to fetch
-  await new Promise(resolve => setTimeout(resolve, 2000));
 
   try {
     const recipes = await getRecipesFromAPI();
@@ -134,7 +150,6 @@ const loadSavedRecipes = () => {
   if (savedDate === today) {
     state.recipes = savedRecipes;
 
-    setItemsPerPage(); //
     displayRecipes(filterAndSortRecipes());
     return;
   }
@@ -184,16 +199,13 @@ const createRecipeCard = recipe => {
   const cuisine = getCuisineText(recipe);
   const time = recipe.readyInMinutes ? `${recipe.readyInMinutes} min` : "Unknown time";
   const ingredientList = recipe.extendedIngredients || [];
-  const totalIngredients = ingredientList.length;
 
-  const displayedIngredients = ingredientList
-    .slice(0, 5) // max 10
+  const allIngredients = ingredientList
     .map(ing => capitalize(ing.name))
     .join(", ");
 
-  const ingredients = totalIngredients
-    ? `${displayedIngredients}${totalIngredients > 5 ?
-      "<p> - More ingredients listed in full recipe</p>" : ""}`
+  const ingredients = ingredientList.length
+    ? allIngredients
     : "No ingredients listed";
 
   recipeCard.innerHTML = `
@@ -205,7 +217,6 @@ const createRecipeCard = recipe => {
     <p><strong>Diet:</strong> ${finalDiet}</p>
     <p><strong>Cuisine:</strong> ${cuisine}</p>
     <p><strong>Time:</strong> ${time}</p>
-    <p><strong>Ingredients:</strong> ${totalIngredients}</p>
     <hr class="recipe-divider">
    <p><strong>Ingredients:</strong> ${ingredients}</p>
       <a href="${recipe.sourceUrl}" 
@@ -217,6 +228,7 @@ const createRecipeCard = recipe => {
 
 // DISPLAY RECIPES //
 const displayRecipes = (recipeList = []) => {
+  state.filteredRecipes = recipeList;
   elements.errorContainer.innerHTML = "";
 
 
@@ -232,7 +244,6 @@ const displayRecipes = (recipeList = []) => {
 
   elements.recipeCountElement.textContent =
     `Showing ${startIndex}-${endIndex} of ${recipeList.length} recipes`;
-
 
   if (state.apiQuotaExceeded) return;
 
@@ -251,6 +262,13 @@ const displayRecipes = (recipeList = []) => {
   });
 
   updatePaginationControls(recipeList);
+
+  const topOffset = elements.container.getBoundingClientRect().top + window.pageYOffset - 100;
+
+  window.scrollTo({
+    top: topOffset,
+    behavior: "smooth"
+  });
 };
 
 // FILTERS & SORTING //
@@ -504,22 +522,23 @@ const initializeEventListeners = () => {
 document.getElementById("prevPage").addEventListener("click", () => {
   if (state.currentPage > 1) {
     state.currentPage--;
-    displayRecipes(filterAndSortRecipes());
+    displayRecipes(state.filteredRecipes);
   }
 });
 
 document.getElementById("nextPage").addEventListener("click", () => {
-  const totalPages = Math.ceil(filterAndSortRecipes().length / state.itemsPerPage);
+  const totalPages = Math.ceil(state.filteredRecipes.length / state.itemsPerPage);
   if (state.currentPage < totalPages) {
     state.currentPage++;
-    displayRecipes(filterAndSortRecipes());
+    displayRecipes(state.filteredRecipes);
   }
 });
 
 
+
 // INITIALIZE PAGE //
 document.addEventListener("DOMContentLoaded", () => {
-  setItemsPerPage(); //
+  setItemsPerPage();
   loadSavedRecipes();
   initializeEventListeners();
 });

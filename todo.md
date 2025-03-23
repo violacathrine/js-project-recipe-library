@@ -22,8 +22,8 @@ Completed
 [x] Implement local storage caching to reduce API requests  
 
 ---
-// LEFT TO DO
-[] Implement pagination or infinite scrolling** (e.g., fetching more recipes when the user reaches the bottom)  
+// LEFT TO DO (optional)
+[x] Implement pagination or infinite scrolling** (e.g., fetching more recipes when the user reaches the bottom)  
 [] Allow users to save/like recipes and store them in local storage** (DOES IT WORK????)
 [] Allow users to search for specific recipe names or ingredients  
 

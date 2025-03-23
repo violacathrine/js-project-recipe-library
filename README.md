@@ -1,6 +1,6 @@
 # Recipe Library
 
-This is my submission for **Project 3: Recipe Project** in the "Advanced JavaScript Technologies and TypeScript" course.
+This is my Recipe Library project for the "Advanced JavaScript Technologies and TypeScript" course.
 
 ## Live Demo
 
@@ -14,7 +14,6 @@ This is my submission for **Project 3: Recipe Project** in the "Advanced JavaScr
   - Title, image (with fallback if image is broken)
   - Cooking time
   - Diet & cuisine type
-  - Up to 5 listed ingredients (with total count shown)
   - Link to full recipe
 - Filter recipes by:
   - Diet (e.g. vegan, vegetarian, gluten-free)
@@ -49,4 +48,4 @@ This is my submission for **Project 3: Recipe Project** in the "Advanced JavaScr
 
 ---
 
-Created with ❤️ during the JavaScript course at Technigo.
+Created by Cathi with ❤️ during the JavaScript course at Technigo.
