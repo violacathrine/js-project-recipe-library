@@ -42,8 +42,6 @@ header {
 }
 
 .filters select {
-    appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230018a4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat;
     background-position: right 10px center;
     background-size: 15px;
@@ -120,8 +118,6 @@ select.sort-active {
     font-weight: bold;
 }
 
-/* BUTTONS */
-
 /* TEXT FOR NO RESULTS, HOW MANY RECIPES FOUND AND SELECTED FILTERS */
 #selected-filters,
 #selected-sorting,
@@ -146,8 +142,7 @@ select.sort-active {
 }
 
 /* SEARCH BAR */
-
-.search-container {
+.search-and-count {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
@@ -230,60 +225,15 @@ select.sort-active {
     color: inherit;
 }
 
-/* RECIPE PREVIEW */
-.recipe-preview {
-    margin-top: auto;
-    position: relative;
-    border-top: 2px solid #E9E9E9;
-    padding-top: 10px;
-    text-align: center;
-}
-
-.preview-text {
-    font-family: verdana;
-    font-size: 14px;
-    line-height: 1.5;
-    margin-bottom: 10px;
-    color: #000000;
-}
-
-.recipe-full-content {
-    font-family: verdana;
-    font-size: 14px;
-    line-height: 1.6;
-    margin-bottom: 10px;
-    color: #000000;
-}
-
-.read-more-btn {
-    background-color: transparent;
-    color: #0018a4;
-    border: none;
-    padding: 5px 0;
-    cursor: pointer;
-    font-family: 'Times New Roman', Times, serif;
-    font-size: 16px;
-    font-weight: bold;
-    text-decoration: underline;
-    transition: color 0.2s ease;
-}
-
-.read-more-btn:hover {
-    color: #ff6589;
-}
-
-.read-more-btn:active {
-    transform: scale(0.98);
-}
-
+/* VIEW FULL RECIPE BUTTON */
 .view-recipe-btn {
     background-color: #ff6589;
     color: white;
     border: none;
     border-radius: 10px;
+    margin-top: auto;
     padding: 10px 20px;
     cursor: pointer;
-    font-family: 'Times New Roman', Times, serif;
     font-size: 16px;
     font-weight: bold;
     text-decoration: none;
@@ -301,6 +251,30 @@ select.sort-active {
     transform: scale(0.99);
     transition: all 0.1s ease;
 }
+
+#pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+#pagination-controls button {
+    padding: 8px 16px;
+    font-weight: bold;
+    border: 2px solid #0018a4;
+    background-color: #ff6589;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#pagination-controls span {
+    font-weight: bold;
+    color: #0018a4;
+}
+
 
 /* MEDIA QUERIES FOR LARGER SCREENS */
 @media screen and (min-width: 768px) {

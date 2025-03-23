@@ -54,14 +54,22 @@
 
         <div id="filters-info"></div>
 
-        <div id="search-container">
+        <div id="search-and-count">
             <input type="text" id="search-input" placeholder="Search recipes..." autocomplete="off" />
             <p id="recipe-count"></p>
         </div>
 
         <section id="recipe-container">
-            <div id="loading" style="display: none;">Loading recipes...</div>
+            <div id="loading" style="display: none;"></div>
+            <!--Changing this dynamically in JS - loading recipes -->
         </section>
+
+        <div id="pagination-controls">
+            <button id="prevPage">←</button>
+            <span id="currentPageDisplay"></span>
+            <button id="nextPage">→</button>
+        </div>
+
         <div id="error-container"></div>
 
     </main>

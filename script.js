@@ -26,64 +26,100 @@ const elements = {
 const state = {
   recipes: [],
   apiQuotaExceeded: false,
+  itemsPerPage: 10,
+  currentPage: 1
 };
 
-// CAPITALIZE STRING //
-const capitalizeString = str => str.charAt(0)
-  .toUpperCase() + str.slice(1).toLowerCase();
+const setItemsPerPage = () => {
+  state.itemsPerPage = window.innerWidth < 768 ? 5 : 10;
+};
 
+// CAPITALIZE //
 const capitalize = input => {
-  if (Array.isArray(input)) return input.map(capitalizeString);
-  if (typeof input === "string") return capitalizeString(input);
+  const cap = str => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+
+  if (Array.isArray(input)) {
+    return input
+      .filter(item => typeof item === "string")
+      .map(cap);
+  }
+
+  if (typeof input === "string") {
+    return cap(input);
+  }
+
   return input;
 };
 
+
 // TOGGLE LOADING & ERROR MESSAGES //
-const toggleLoading = show => {
-  elements.loadingIndicator.style.display = show ? "block" : "none";
+const toggleLoading = (show, message = "Loading...") => {
+  if (show) {
+    elements.loadingIndicator.style.display = "block";
+    elements.loadingIndicator.innerText = message;
+  } else {
+    elements.loadingIndicator.style.display = "none";
+    elements.loadingIndicator.innerText = "";
+  }
 };
 
-const showErrorMessage = (message = "An unknown error occurred.") => {
+// Errormessage 
+const showErrorMessage = (message =
+  "An unknown error occurred Please reload page and try again.") => {
   toggleLoading(false);
-  elements.errorContainer.innerHTML = `<p class="error-message">${message}</p>`;
+  elements.errorContainer.innerHTML =
+    `<p class="error-message">${message}</p>`;
   state.apiQuotaExceeded = true;
 };
 
-// API & DATA HANDLING //
+// SAVE TO LOCALSTORAGE
+const saveRecipesToLocalStorage = (recipes) => {
+  const today = new Date().toISOString().split("T")[0];
+  localStorage.setItem("recipesData", JSON.stringify({ recipes, savedDate: today }));
+};
+
+// "CALLING" API AND "REFRESH" RECIPES //
 const getRecipesFromAPI = async () => {
   const response = await fetch(
-    `https://api.spoonacular.com/recipes/random?number=100&apiKey=${API_KEY}`);
+    `https://api.spoonacular.com/recipes/random?number=100&apiKey=${API_KEY}`
+  );
 
-  if (!response.ok) {
-    throw new Error(`Error! Status: ${response.status}`);
+  if (response.status === 402) {
+    throw new Error("API quota exceeded!");
+  } else if (response.status === 500) {
+    throw new Error("Server error");
+  } else if (response.status === 404) {
+    throw new Error("Not found");
+  } else if (!response.ok) {
+    throw new Error(`Unexpected error: ${response.status}`);
   }
 
   const data = await response.json();
   return data.recipes;
 };
 
-// FETCH RECIPES //
+
+// SAVING RECIPES FROM API AND USING THEM //
 const fetchRecipes = async () => {
-  toggleLoading(true);
+  toggleLoading(true, "Please wait, loading fresh new recipes!");
   state.apiQuotaExceeded = false;
+
+  // Test delay for recipes to fetch
+  await new Promise(resolve => setTimeout(resolve, 2000));
 
   try {
     const recipes = await getRecipesFromAPI();
     state.recipes = recipes;
 
-    const today = new Date().toISOString().split("T")[0];
-    localStorage.setItem("recipesData", JSON.stringify({ recipes, savedDate: today }));
-
-    console.log("New recipes saved in Local Storage.");
+    saveRecipesToLocalStorage(recipes);
     displayRecipes(state.recipes);
   } catch (error) {
-    console.error("Error fetching recipes:", error);
-    showErrorMessage("Failed to load recipes. Please try again later.");
-    state.recipes = [];
+    handleApiError(error);
   } finally {
     toggleLoading(false);
   }
 };
+
 
 // LOCALSTORAGE //
 const loadSavedRecipes = () => {
@@ -97,14 +133,16 @@ const loadSavedRecipes = () => {
 
   if (savedDate === today) {
     state.recipes = savedRecipes;
-    displayRecipes(state.recipes);
+
+    setItemsPerPage(); //
+    displayRecipes(filterAndSortRecipes());
     return;
   }
 
   fetchRecipes();
 };
 
-//  RECIPE DISPLAY //
+// GET DIET TEXT 
 const getDietText = recipe => {
   if (recipe.vegan) return "Vegan";
   if (recipe.vegetarian) return "Vegetarian";
@@ -117,14 +155,13 @@ const getDietText = recipe => {
     );
 
     if (firstAllowedDiet) {
-      return capitalizeString(firstAllowedDiet.replace("-", " "));
+      return capitalize(firstAllowedDiet.replace("-", " "));
     }
   }
-
   return "No specific diet";
 };
 
-// FILTER OUT CUISINES NOT IN ALLOWED_CUISINES ARRAY //
+// GET CUISINE TEXT 
 const getCuisineText = recipe => {
   if (Array.isArray(recipe.cuisines) && recipe.cuisines.length > 0) {
     const firstAllowedCuisine = recipe.cuisines.find(cuisine =>
@@ -132,39 +169,47 @@ const getCuisineText = recipe => {
     );
 
     if (firstAllowedCuisine) {
-      return capitalizeString(firstAllowedCuisine.replace("-", " "));
+      return capitalize(firstAllowedCuisine.replace("-", " "));
     }
   }
-  return "Other cuisine";
+  return "Not specified";
 };
 
-// CREATE RECIPE CARD //
+// CREATE RECIPE CARD
 const createRecipeCard = recipe => {
-  if (!recipe.image) return null;
-
   const recipeCard = document.createElement("div");
   recipeCard.classList.add("recipe-card");
 
   const finalDiet = getDietText(recipe);
   const cuisine = getCuisineText(recipe);
   const time = recipe.readyInMinutes ? `${recipe.readyInMinutes} min` : "Unknown time";
-  const ingredients = recipe.extendedIngredients?.length
-    ? recipe.extendedIngredients.map(ing => capitalizeString(ing.name)).join(", ")
+  const ingredientList = recipe.extendedIngredients || [];
+  const totalIngredients = ingredientList.length;
+
+  const displayedIngredients = ingredientList
+    .slice(0, 5) // max 10
+    .map(ing => capitalize(ing.name))
+    .join(", ");
+
+  const ingredients = totalIngredients
+    ? `${displayedIngredients}${totalIngredients > 5 ?
+      "<p> - More ingredients listed in full recipe</p>" : ""}`
     : "No ingredients listed";
 
   recipeCard.innerHTML = `
-    <img src="${recipe.image}" alt="${recipe.title}">
-    <h3>${capitalizeString(recipe.title)}</h3>
+    <img src="${recipe.image}" alt="${recipe.title}" 
+     onerror="this.onerror=null; this.src=
+     'https://placehold.co/300x200?text=No+Image&font=roboto'">
+    <h3>${capitalize(recipe.title)}</h3>
     <hr class="recipe-divider">
     <p><strong>Diet:</strong> ${finalDiet}</p>
     <p><strong>Cuisine:</strong> ${cuisine}</p>
     <p><strong>Time:</strong> ${time}</p>
+    <p><strong>Ingredients:</strong> ${totalIngredients}</p>
     <hr class="recipe-divider">
-    <p><strong>Ingredients:</strong> ${ingredients}</p>
-    <div class="recipe-preview">
+   <p><strong>Ingredients:</strong> ${ingredients}</p>
       <a href="${recipe.sourceUrl}" 
       target="_blank" class="view-recipe-btn">View Full Recipe</a>
-    </div>
   `;
 
   return recipeCard;
@@ -172,13 +217,22 @@ const createRecipeCard = recipe => {
 
 // DISPLAY RECIPES //
 const displayRecipes = (recipeList = []) => {
+  elements.errorContainer.innerHTML = "";
+
+
   if (!Array.isArray(recipeList)) {
-    console.error("Error: recipeList is not an array!", recipeList);
+    console.error("Error: recipeList is not an array!",
+      recipeList);
     return;
   }
 
   elements.container.innerHTML = "";
-  elements.recipeCountElement.textContent = `Showing recipes: ${recipeList.length}`;
+  const startIndex = (state.currentPage - 1) * state.itemsPerPage + 1;
+  const endIndex = Math.min(startIndex + state.itemsPerPage - 1, recipeList.length);
+
+  elements.recipeCountElement.textContent =
+    `Showing ${startIndex}-${endIndex} of ${recipeList.length} recipes`;
+
 
   if (state.apiQuotaExceeded) return;
 
@@ -189,10 +243,14 @@ const displayRecipes = (recipeList = []) => {
     return;
   }
 
-  recipeList.forEach(recipe => {
+  const paginatedRecipes = getPaginatedRecipes(recipeList);
+
+  paginatedRecipes.forEach(recipe => {
     const card = createRecipeCard(recipe);
     if (card) elements.container.appendChild(card);
   });
+
+  updatePaginationControls(recipeList);
 };
 
 // FILTERS & SORTING //
@@ -228,12 +286,12 @@ const updateFiltersInfo = () => {
 
   // CHECK DIET FILTER
   if (elements.dietFilter.value !== "all") {
-    activeFilters.push(capitalizeString(elements.dietFilter.value));
+    activeFilters.push(capitalize(elements.dietFilter.value));
   }
 
   //  CHECK CUISINE FILTER
   if (elements.cuisineFilter.value !== "all") {
-    activeFilters.push(capitalizeString(elements.cuisineFilter.value));
+    activeFilters.push(capitalize(elements.cuisineFilter.value));
   }
 
   // CHECK TIME FILTER
@@ -265,6 +323,8 @@ const updateFiltersInfo = () => {
 
 // RESET FILTERS //
 const resetFilters = () => {
+  elements.errorContainer.innerHTML = "";
+
   [elements.dietFilter, elements.cuisineFilter, elements.timeFilter].forEach(filter => {
     filter.value = "all";
     filter.classList.remove("active-filter");
@@ -280,7 +340,11 @@ const resetFilters = () => {
   elements.sortFilter.style.border = "2px solid #FAFBFF";
 
   elements.searchInput.value = "";
-  elements.filtersInfo.innerHTML = ""; // Clear the filters info text
+  elements.filtersInfo.innerHTML = "";
+
+  state.currentPage = 1;
+  setItemsPerPage();
+  displayRecipes(filterAndSortRecipes());
 };
 
 // FILTER FUNCTIONS //
@@ -321,6 +385,7 @@ const filterByTime = recipe => {
   return timeRanges[elements.timeFilter.value] || false;
 };
 
+// SORT RECIPES //
 const sortRecipes = recipes => {
   const sortValue = elements.sortFilter.value;
   if (sortValue === "none") return recipes;
@@ -329,15 +394,17 @@ const sortRecipes = recipes => {
 
   switch (sortValue) {
     case "time-asc":
-      return sortedRecipes.sort((a, b) => (a.readyInMinutes || 0) - (b.readyInMinutes || 0));
+      return sortedRecipes.sort((a, b) =>
+        (a.readyInMinutes || 0) - (b.readyInMinutes || 0));
     case "popularity-desc":
-      return sortedRecipes.sort((a, b) => (b.aggregateLikes || 0) - (a.aggregateLikes || 0));
+      return sortedRecipes.sort((a, b) =>
+        (b.aggregateLikes || 0) - (a.aggregateLikes || 0));
     default:
       return sortedRecipes;
   }
 };
 
-//  SEARCH & RANDOM-BUTTON
+// GET RANDOM RECIPE //
 const getRandomRecipeFromList = recipes => {
   return recipes[Math.floor(Math.random() * recipes.length)];
 };
@@ -352,8 +419,11 @@ const getRandomRecipe = () => {
   displayRecipes([randomRecipe]);
 };
 
+// SEARCH RECIPES //
 const searchRecipes = () => {
   const searchTerm = elements.searchInput.value.toLowerCase().trim();
+
+  state.currentPage = 1;
 
   if (!searchTerm) {
     displayRecipes(filterAndSortRecipes());
@@ -383,15 +453,32 @@ const filterAndSortRecipes = () => {
     state.recipes.filter(recipe =>
       filterByDiet(recipe) &&
       filterByCuisine(recipe) &&
-      filterByTime(recipe)
-    )
-  );
+      filterByTime(recipe)));
 };
+
+// PAGINATION //
+const getPaginatedRecipes = recipeList => {
+  const startIndex = (state.currentPage - 1) * state.itemsPerPage;
+  const endIndex = startIndex + state.itemsPerPage;
+  return recipeList.slice(startIndex, endIndex);
+};
+
+const updatePaginationControls = (recipeList) => {
+  const totalPages = Math.ceil(recipeList.length / state.itemsPerPage);
+  const currentPageSpan = document.getElementById("currentPageDisplay");
+
+  currentPageSpan.textContent = `Page ${state.currentPage} of ${totalPages}`;
+  document.getElementById("prevPage").disabled = state.currentPage === 1;
+  document.getElementById("nextPage").disabled = state.currentPage === totalPages;
+};
+
 
 // EVENT LISTENERS //
 const initializeEventListeners = () => {
-  [elements.dietFilter, elements.cuisineFilter, elements.timeFilter].forEach(filter => {
+  [elements.dietFilter, elements.cuisineFilter,
+  elements.timeFilter].forEach(filter => {
     filter.addEventListener("change", () => {
+      state.currentPage = 1;
       updateFilterStyle(filter);
       updateFiltersInfo();
       displayRecipes(filterAndSortRecipes());
@@ -399,6 +486,7 @@ const initializeEventListeners = () => {
   });
 
   elements.sortFilter.addEventListener("change", () => {
+    state.currentPage = 1;
     updateFilterStyle(elements.sortFilter);
     updateFiltersInfo();
     displayRecipes(filterAndSortRecipes());
@@ -410,14 +498,29 @@ const initializeEventListeners = () => {
   });
 
   elements.randomBtn.addEventListener("click", getRandomRecipe);
-
-  elements.searchInput.addEventListener("input", () => {
-    displayRecipes(filterAndSortRecipes());
-  });
+  elements.searchInput.addEventListener("input", searchRecipes);
 };
+
+document.getElementById("prevPage").addEventListener("click", () => {
+  if (state.currentPage > 1) {
+    state.currentPage--;
+    displayRecipes(filterAndSortRecipes());
+  }
+});
+
+document.getElementById("nextPage").addEventListener("click", () => {
+  const totalPages = Math.ceil(filterAndSortRecipes().length / state.itemsPerPage);
+  if (state.currentPage < totalPages) {
+    state.currentPage++;
+    displayRecipes(filterAndSortRecipes());
+  }
+});
+
 
 // INITIALIZE PAGE //
 document.addEventListener("DOMContentLoaded", () => {
+  setItemsPerPage(); //
   loadSavedRecipes();
   initializeEventListeners();
 });
+
